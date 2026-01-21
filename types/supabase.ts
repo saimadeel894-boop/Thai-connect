@@ -45,6 +45,9 @@ export interface Database {
           last_seen: string;
           created_at: string;
           updated_at: string;
+          phone: string | null;
+          weight: number | null;
+          interested_in_genders: string[] | null;
         };
         Insert: {
           id: string;
@@ -71,6 +74,9 @@ export interface Database {
           last_seen?: string;
           created_at?: string;
           updated_at?: string;
+          phone?: string | null;
+          weight?: number | null;
+          interested_in_genders?: string[] | null;
         };
         Update: {
           id?: string;
@@ -97,6 +103,9 @@ export interface Database {
           last_seen?: string;
           created_at?: string;
           updated_at?: string;
+          phone?: string | null;
+          weight?: number | null;
+          interested_in_genders?: string[] | null;
         };
       };
       matches: {
