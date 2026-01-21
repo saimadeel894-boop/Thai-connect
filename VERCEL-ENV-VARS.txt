@@ -1,0 +1,95 @@
+# VERCEL ENVIRONMENT VARIABLES
+# Copy disse værdier til Vercel Dashboard → Settings → Environment Variables
+
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=https://wgnzbscfqqhxpfaomafx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indnbnpic2NmcXFoeHBmYW9tYWZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1NDEyMjYsImV4cCI6MjA4NDExNzIyNn0.XiHjuDQ0xp-Fw63ma2xitI-WDAdMpmDe09bsk2n4mmY
+NEXT_PUBLIC_SITE_URL=https://your-app.vercel.app
+
+# Stripe Keys (LIVE)
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_your_publishable_key_here
+STRIPE_SECRET_KEY=sk_live_your_secret_key_here
+
+# Stripe Payment Links
+NEXT_PUBLIC_STRIPE_MONTHLY_PAYMENT_LINK=https://buy.stripe.com/aFa3cv4IndrC5o76NJ6Na02
+NEXT_PUBLIC_STRIPE_YEARLY_PAYMENT_LINK=https://buy.stripe.com/3cI28r7Uz2MY2bVegb6Na03
+
+# Stripe Webhook Secret (opdater efter Vercel deploy - se guide nedenfor)
+STRIPE_WEBHOOK_SECRET=whsec_placeholder
+
+
+# ============================================
+# VERCEL DEPLOYMENT GUIDE
+# ============================================
+
+## STEP 1: Deploy til Vercel
+1. Gå til: https://vercel.com/new
+2. Import dit GitHub repo: johnkorsgaaard-beep/thaiconnect
+3. Vælg branch: main
+4. Framework Preset: Next.js (auto-detected)
+5. Tryk "Deploy" (det vil fejle første gang - det er OK)
+
+## STEP 2: Tilføj Environment Variables
+1. Gå til: Project Settings → Environment Variables
+2. Tilføj HVER variable fra listen ovenfor:
+   - Key: NEXT_PUBLIC_SUPABASE_URL
+   - Value: https://wgnzbscfqqhxpfaomafx.supabase.co
+   - Environment: Production, Preview, Development (vælg alle 3)
+   - Tryk "Add"
+
+3. Gentag for ALLE variables ovenfor
+
+4. VIGTIGT: Opdater NEXT_PUBLIC_SITE_URL til din Vercel URL:
+   - Eksempel: https://thaiconnect.vercel.app
+   - Eller din custom domain hvis du har en
+
+## STEP 3: Redeploy
+1. Gå til Deployments
+2. Find latest deployment
+3. Tryk på "..." → Redeploy
+4. Vent til det er færdigt
+
+## STEP 4: Setup Stripe Webhook (EFTER deploy)
+1. Gå til Stripe Dashboard → Developers → Webhooks
+2. Add endpoint: https://your-app.vercel.app/api/stripe/webhook
+3. Select events:
+   - checkout.session.completed
+   - customer.subscription.updated
+   - customer.subscription.deleted
+   - invoice.payment_succeeded
+   - invoice.payment_failed
+4. Copy "Signing secret" (starter med whsec_)
+5. Gå tilbage til Vercel → Environment Variables
+6. Opdater STRIPE_WEBHOOK_SECRET med den nye værdi
+7. Redeploy igen
+
+## STEP 5: Test
+1. Besøg din Vercel URL
+2. Test login
+3. Test premium upgrade
+4. Test chat/messages
+
+# ============================================
+# TROUBLESHOOTING
+# ============================================
+
+Problem: "Invalid Supabase URL"
+→ Check at alle env vars er tilføjet korrekt i Vercel
+
+Problem: Payment virker ikke
+→ Check at Stripe webhook er setup korrekt
+→ Check webhook logs i Stripe Dashboard
+
+Problem: Messages virker ikke
+→ Check Supabase RLS policies
+→ Check at database migrations er kørt
+
+# ============================================
+# SUPPORT
+# ============================================
+
+Hvis der er problemer:
+1. Check Vercel deployment logs
+2. Check browser console (F12)
+3. Check Stripe webhook logs
+4. Check Supabase logs
