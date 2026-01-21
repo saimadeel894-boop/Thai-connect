@@ -170,11 +170,13 @@ export async function POST(req: NextRequest) {
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice;
 
-        if (invoice.subscription) {
+        const invoiceWithSubscription = invoice as Stripe.Invoice & { subscription: string };
+        const subscriptionId = invoiceWithSubscription.subscription;
+        if (subscriptionId) {
           const { data: sub } = await supabase
             .from('subscriptions')
             .select('user_id, plan_type')
-            .eq('stripe_subscription_id', invoice.subscription as string)
+            .eq('stripe_subscription_id', subscriptionId)
             .single();
 
           if (sub) {
@@ -187,7 +189,7 @@ export async function POST(req: NextRequest) {
               description: `${sub.plan_type} subscription renewal`,
               plan_name: sub.plan_type,
               stripe_invoice_id: invoice.id,
-              stripe_charge_id: invoice.charge as string,
+              stripe_charge_id: (invoice as any).charge as string | undefined,
               invoice_url: invoice.hosted_invoice_url,
             });
 
@@ -203,11 +205,13 @@ export async function POST(req: NextRequest) {
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
 
-        if (invoice.subscription) {
+        const invoiceWithSubscription = invoice as Stripe.Invoice & { subscription: string };
+        const subscriptionId = invoiceWithSubscription.subscription;
+        if (subscriptionId) {
           const { error } = await supabase
             .from('subscriptions')
             .update({ status: 'past_due' })
-            .eq('stripe_subscription_id', invoice.subscription as string);
+            .eq('stripe_subscription_id', subscriptionId);
 
           if (error) {
             console.error('Error setting subscription to past_due:', error);
