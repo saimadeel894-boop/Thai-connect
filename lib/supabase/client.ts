@@ -8,10 +8,13 @@ export function createClient() {
       auth: {
         getUser: async () => ({ data: { user: null }, error: null }),
         signOut: async () => {},
+        signInWithPassword: async () => ({ data: { user: null }, error: null }),
       },
       from: () => ({
         select: () => ({ data: [], error: null }),
         eq: () => ({ select: () => ({ data: [], error: null }) }),
+        insert: () => ({ error: null }),
+        update: () => ({ error: null }),
       }),
     };
   }
