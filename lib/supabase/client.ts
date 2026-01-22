@@ -8,7 +8,7 @@ export function createClient() {
       auth: {
         getUser: async () => ({ data: { user: null }, error: null }),
         signOut: async () => {},
-        signInWithPassword: async () => ({ data: { user: null }, error: null }),
+        signInWithPassword: async (credentials: { email: string; password: string }) => ({ data: { user: { id: 'mock-user-id', email: credentials.email } }, error: null }),
       },
       from: (table: string) => ({
         select: (columns?: string) => ({
