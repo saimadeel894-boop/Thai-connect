@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe } from '@/lib/stripe/server';
 import { createClient } from '@/lib/supabase/server';
-import Stripe from 'stripe';
+import type Stripe from 'stripe';
 
 /**
  * Runtime-safe helpers:
@@ -42,6 +41,7 @@ export async function POST(req: NextRequest) {
   let event: Stripe.Event;
 
   try {
+    const { stripe } = await import('@/lib/stripe/server');
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
   } catch (err: any) {
     console.error('Webhook signature verification failed:', err.message);
@@ -66,6 +66,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Get subscription details from Stripe (runtime-safe unwrap)
+        const { stripe } = await import('@/lib/stripe/server');
         const stripeSubscriptionRes = await stripe.subscriptions.retrieve(subscriptionId);
         const stripeSubscription = unwrapStripeSubscription(stripeSubscriptionRes);
 
