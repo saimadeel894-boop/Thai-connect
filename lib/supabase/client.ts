@@ -10,39 +10,41 @@ export function createClient() {
         signOut: async () => {},
         signInWithPassword: async (credentials: { email: string; password: string }) => ({ data: { user: { id: 'mock-user-id', email: credentials.email } }, error: null }),
       },
-      from: (table: string) => ({
-        select: (columns?: string) => ({
-          eq: (column: string, value: any) => ({
-            data: [],
-            error: null,
-            single: () => ({
-              data: null,
+      from: (table: string) => {
+        const queryBuilder = {
+          select: (columns?: string) => {
+            const chainedMethods = {
+              eq: (column: string, value: any) => ({
+                ...chainedMethods,
+                single: () => ({ data: null, error: null }),
+                data: [],
+                error: null,
+              }),
+              single: () => ({ data: null, error: null }),
+              order: (column: string, options?: { ascending?: boolean }) => ({
+                ...chainedMethods,
+                limit: (count: number) => ({ data: [], error: null }),
+                data: [],
+                error: null,
+              }),
+              limit: (count: number) => ({ data: [], error: null }),
+              data: [],
               error: null,
-            }),
-          }),
-          single: () => ({
-            data: null,
+            };
+            return chainedMethods;
+          },
+          insert: (values: any) => ({ error: null }),
+          update: (values: any) => ({
+            eq: (column: string, value: any) => ({ error: null }),
             error: null,
           }),
-          data: [],
-          error: null,
-        }),
-        insert: (values: any) => ({
-          error: null,
-        }),
-        update: (values: any) => ({
-          eq: (column: string, value: any) => ({
+          delete: () => ({
+            eq: (column: string, value: any) => ({ error: null }),
             error: null,
           }),
-          error: null,
-        }),
-        delete: () => ({
-          eq: (column: string, value: any) => ({
-            error: null,
-          }),
-          error: null,
-        }),
-      }),
+        };
+        return queryBuilder;
+      },
     };
   }
   
