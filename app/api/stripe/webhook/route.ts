@@ -9,13 +9,11 @@ import Stripe from 'stripe';
  * So we read fields defensively.
  */
 function getSubscriptionPeriodStart(sub: Stripe.Subscription): number | null {
-  const anySub = sub as any;
-  return typeof anySub.current_period_start === 'number' ? anySub.current_period_start : null;
+  return typeof (sub as any).current_period_start === 'number' ? (sub as any).current_period_start : null;
 }
 
 function getSubscriptionPeriodEnd(sub: Stripe.Subscription): number | null {
-  const anySub = sub as any;
-  return typeof anySub.current_period_end === 'number' ? anySub.current_period_end : null;
+  return typeof (sub as any).current_period_end === 'number' ? (sub as any).current_period_end : null;
 }
 
 function unwrapStripeSubscription(maybeWrapped: any): Stripe.Subscription {
@@ -135,7 +133,7 @@ export async function POST(req: NextRequest) {
         const { error } = await supabase
           .from('subscriptions')
           .update({
-            status: subscription.status as any,
+            status: subscription.status,
             current_period_start: periodStart ? new Date(periodStart * 1000).toISOString() : null,
             current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
             cancel_at: subscription.cancel_at ? new Date(subscription.cancel_at * 1000).toISOString() : null,
@@ -189,7 +187,7 @@ export async function POST(req: NextRequest) {
               description: `${sub.plan_type} subscription renewal`,
               plan_name: sub.plan_type,
               stripe_invoice_id: invoice.id,
-              stripe_charge_id: (invoice as any).charge as string | undefined,
+              stripe_charge_id: (invoice as any as { charge?: string }).charge as string | undefined,
               invoice_url: invoice.hosted_invoice_url,
             });
 

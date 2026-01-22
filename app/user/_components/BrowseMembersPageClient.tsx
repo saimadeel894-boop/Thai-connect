@@ -251,6 +251,9 @@ export default function BrowseMembersPageClient({
         last_seen: new Date().toISOString(),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
+        phone: null,
+        weight: null,
+        interested_in_genders: null,
       };
 
       setActiveChatUser(profile);
@@ -315,6 +318,9 @@ export default function BrowseMembersPageClient({
       last_seen: new Date().toISOString(),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
+      phone: null,
+      weight: null,
+      interested_in_genders: null,
     };
 
     setSelectedProfile(profile);
