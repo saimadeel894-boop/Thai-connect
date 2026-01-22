@@ -10,7 +10,7 @@ export const getStripe = (): Stripe => {
     }
     
     stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2024-04-10',
+      apiVersion: '2025-12-15.clover',
       typescript: true,
     });
   }
