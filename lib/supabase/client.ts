@@ -15,6 +15,14 @@ export function createClient() {
           eq: (column: string, value: any) => ({
             data: [],
             error: null,
+            single: () => ({
+              data: null,
+              error: null,
+            }),
+          }),
+          single: () => ({
+            data: null,
+            error: null,
           }),
           data: [],
           error: null,
