@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe } from '@/lib/stripe/server';
 import { createClient } from '@/lib/supabase/server';
+import type Stripe from 'stripe';
 
 export async function POST(req: NextRequest) {
   try {
@@ -40,7 +40,9 @@ export async function POST(req: NextRequest) {
         .eq('id', user.id)
         .single();
 
-      // Create new Stripe customer
+      // Dynamically import and create Stripe instance
+      const { stripe } = await import('@/lib/stripe/server');
+          
       const customer = await stripe.customers.create({
         email: profile?.email || user.email,
         name: profile?.name || undefined,
@@ -53,6 +55,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Create Checkout Session
+    const { stripe } = await import('@/lib/stripe/server');
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       line_items: [
