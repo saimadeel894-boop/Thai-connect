@@ -1,4 +1,4 @@
-import { createBrowserClient } from "@supabase/ssr";
+﻿import { createBrowserClient } from ""@supabase/ssr"";
 
 export function createClient() {
   if (typeof window === 'undefined') {
@@ -10,11 +10,30 @@ export function createClient() {
         signOut: async () => {},
         signInWithPassword: async () => ({ data: { user: null }, error: null }),
       },
-      from: () => ({
-        select: () => ({ data: [], error: null }),
-        eq: () => ({ select: () => ({ data: [], error: null }) }),
-        insert: () => ({ error: null }),
-        update: () => ({ error: null }),
+      from: (table: string) => ({
+        select: (columns?: string) => ({
+          eq: (column: string, value: any) => ({
+            data: [],
+            error: null,
+          }),
+          data: [],
+          error: null,
+        }),
+        insert: (values: any) => ({
+          error: null,
+        }),
+        update: (values: any) => ({
+          eq: (column: string, value: any) => ({
+            error: null,
+          }),
+          error: null,
+        }),
+        delete: () => ({
+          eq: (column: string, value: any) => ({
+            error: null,
+          }),
+          error: null,
+        }),
       }),
     };
   }
