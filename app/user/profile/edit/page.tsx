@@ -7,6 +7,7 @@ import Button from "@/components/shared/Button";
 import Input from "@/components/shared/Input";
 import { X, Upload, Trash2, Plus } from "lucide-react";
 import ImageUpload from "@/components/user/ImageUpload";
+import Image from "next/image";
 
 export default function EditProfilePage() {
   const router = useRouter();
@@ -81,9 +82,9 @@ export default function EditProfilePage() {
         setProfileImagePreview(profile.profile_image || "");
         setPhotos(profile.photos || []);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error loading profile:", err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Kunne ikke indlæse profil");
     } finally {
       setLoading(false);
     }
@@ -164,7 +165,7 @@ export default function EditProfilePage() {
     try {
       const supabase = createClient();
 
-      const profileData: any = {
+      const profileData = {
         name: name.trim(),
         gender,
         age: ageNum,
@@ -193,8 +194,8 @@ export default function EditProfilePage() {
       // Success - redirect back
       router.push("/user");
       router.refresh();
-    } catch (error: any) {
-      setError(error.message || "Kunne ikke gemme profil");
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : "Kunne ikke gemme profil");
     } finally {
       setSaving(false);
     }
@@ -274,9 +275,11 @@ export default function EditProfilePage() {
                   <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                     {photos.map((photo, index) => (
                       <div key={index} className="group relative">
-                        <img
+                        <Image
                           src={photo}
                           alt={`Photo ${index + 1}`}
+                          width={300}
+                          height={300}
                           className="aspect-square w-full rounded-lg object-cover"
                         />
                         <button

@@ -8,14 +8,14 @@ import type Stripe from 'stripe';
  * So we read fields defensively.
  */
 function getSubscriptionPeriodStart(sub: Stripe.Subscription): number | null {
-  return typeof (sub as any).current_period_start === 'number' ? (sub as any).current_period_start : null;
+  return typeof (sub as { current_period_start?: number }).current_period_start === 'number' ? (sub as { current_period_start?: number }).current_period_start! : null;
 }
 
 function getSubscriptionPeriodEnd(sub: Stripe.Subscription): number | null {
-  return typeof (sub as any).current_period_end === 'number' ? (sub as any).current_period_end : null;
+  return typeof (sub as { current_period_end?: number }).current_period_end === 'number' ? (sub as { current_period_end?: number }).current_period_end! : null;
 }
 
-function unwrapStripeSubscription(maybeWrapped: any): Stripe.Subscription {
+function unwrapStripeSubscription(maybeWrapped: unknown): Stripe.Subscription {
   // Some wrappers return { data: Subscription } or Response<Subscription>
   if (maybeWrapped && typeof maybeWrapped === 'object' && 'data' in maybeWrapped) {
     return maybeWrapped.data as Stripe.Subscription;
@@ -43,9 +43,10 @@ export async function POST(req: NextRequest) {
   try {
     const { stripe } = await import('@/lib/stripe/server');
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-  } catch (err: any) {
-    console.error('Webhook signature verification failed:', err.message);
-    return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
+  } catch (err: unknown) {
+    const error = err as Error;
+    console.error('Webhook signature verification failed:', error.message);
+    return NextResponse.json({ error: `Webhook Error: ${error.message}` }, { status: 400 });
   }
 
   const supabase = await createClient();
@@ -188,7 +189,7 @@ export async function POST(req: NextRequest) {
               description: `${sub.plan_type} subscription renewal`,
               plan_name: sub.plan_type,
               stripe_invoice_id: invoice.id,
-              stripe_charge_id: (invoice as any as { charge?: string }).charge as string | undefined,
+              stripe_charge_id: (invoice as { charge?: string }).charge,
               invoice_url: invoice.hosted_invoice_url,
             });
 
@@ -225,10 +226,11 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ received: true });
-  } catch (error: any) {
-    console.error('Error processing webhook:', error);
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error('Error processing webhook:', err);
     return NextResponse.json(
-      { error: error.message || 'Webhook processing failed' },
+      { error: err.message || 'Webhook processing failed' },
       { status: 500 }
     );
   }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { UserCheck, MessageCircle, Shield, Sparkles } from "lucide-react";
 import Badge from "@/components/shared/Badge";
 import Button from "@/components/shared/Button";
@@ -14,10 +15,13 @@ export default function HomePage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <img 
-              src="/logo-thai.png" 
-              alt="ThaiConnect" 
+            <Image
+              src="/logo-thai.png"
+              alt="ThaiConnect"
+              width={150}
+              height={96}
               className="h-24 w-auto"
+              priority
             />
           </Link>
 
@@ -167,9 +171,11 @@ export default function HomePage() {
             {/* Brand */}
             <div>
               <Link href="/" className="flex items-center">
-                <img 
-                  src="/logo-thai.png" 
-                  alt="ThaiConnect" 
+                <Image
+                  src="/logo-thai.png"
+                  alt="ThaiConnect"
+                  width={150}
+                  height={96}
                   className="h-24 w-auto"
                 />
               </Link>
