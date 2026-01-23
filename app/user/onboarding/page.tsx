@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState, useEffect } from "react";
+import { FormEvent, useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Button from "@/components/shared/Button";
@@ -29,11 +29,7 @@ export default function OnboardingPage() {
   const [interestInput, setInterestInput] = useState("");
   const [profileImage, setProfileImage] = useState("");
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     const supabase = createClient();
     const {
       data: { user },
@@ -66,7 +62,11 @@ export default function OnboardingPage() {
     if (profile && profile.name && profile.age && profile.age !== 25 && profile.gender) {
       router.push("/user");
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   const handleAddInterest = () => {
     if (interestInput.trim() && !interests.includes(interestInput.trim())) {
@@ -139,7 +139,7 @@ export default function OnboardingPage() {
       const supabase = createClient();
 
       // Update profile with onboarding data
-      const profileData: any = {
+      const profileData: Record<string, any> = {
         name: name.trim(),
         gender,
         age: ageNum,
@@ -153,7 +153,7 @@ export default function OnboardingPage() {
 
       // Add optional fields - only if provided, otherwise null
       profileData.phone = phone.trim() || null;
-      
+
       if (height) {
         const heightNum = parseInt(height);
         profileData.height = !isNaN(heightNum) ? heightNum : null;
@@ -193,8 +193,9 @@ export default function OnboardingPage() {
       console.log("Onboarding complete! Redirecting to /user");
       router.push("/user");
       router.refresh();
-    } catch (error: any) {
-      setError(error.message || "Kunne ikke gemme profil");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Kunne ikke gemme profil";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -223,8 +224,8 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            <form 
-              onSubmit={handleSubmit} 
+            <form
+              onSubmit={handleSubmit}
               onKeyDown={(e) => {
                 // Prevent Enter key from submitting form accidentally
                 if (e.key === 'Enter' && e.currentTarget.tagName !== 'TEXTAREA') {

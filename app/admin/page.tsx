@@ -11,7 +11,6 @@ import {
   DollarSign,
   UserCheck,
   TrendingUp,
-  TrendingDown,
   Clock,
   CheckCircle,
   XCircle,
@@ -19,40 +18,14 @@ import {
   ArrowDownRight,
   Minus,
 } from "lucide-react";
+import { useCallback } from "react";
 
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [dashboardStats, setDashboardStats] = useState<any>(null);
 
-  useEffect(() => {
-    checkAdminAccess();
-    loadDashboardData();
-  }, []);
-
-  const checkAdminAccess = async () => {
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      router.push("/admin/login");
-      return;
-    }
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile || profile.role !== "admin") {
-      router.push("/admin/login");
-    }
-  };
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       const supabase = createClient();
 
@@ -110,7 +83,34 @@ export default function AdminDashboardPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  const checkAdminAccess = useCallback(async () => {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      router.push("/admin/login");
+      return;
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile || profile.role !== "admin") {
+      router.push("/admin/login");
+    }
+  }, [router]);
+
+  useEffect(() => {
+    checkAdminAccess();
+    loadDashboardData();
+  }, [checkAdminAccess, loadDashboardData]);
 
   // Live stats from database
   const stats = dashboardStats ? [

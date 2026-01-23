@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Search } from "lucide-react";
-import { Conversation, Message, Profile } from "@/types";
+import { Profile } from "@/types";
 import ConversationList from "@/components/user/ConversationList";
 import MessageList from "@/components/user/MessageList";
 import MessageInput from "@/components/user/MessageInput";
@@ -15,7 +15,6 @@ import { useRealtimeMessages } from "@/lib/hooks/useRealtimeMessages";
 import { sendMessage as sendMessageService, markConversationAsRead } from "@/lib/services/messageService";
 
 export default function MessagesPage() {
-  const router = useRouter();
   const [selectedConversationId, setSelectedConversationId] = useState<
     string | null
   >(null);
@@ -42,7 +41,7 @@ export default function MessagesPage() {
   const { conversations, loading } = useRealtimeConversations(currentUserId);
 
   // Load messages for selected conversation with realtime
-  const { messages, loading: messagesLoading, setMessages } = useRealtimeMessages(
+  const { messages, loading: messagesLoading } = useRealtimeMessages(
     selectedConversationId
   );
 
@@ -54,7 +53,7 @@ export default function MessagesPage() {
       );
       if (conversation) {
         setSelectedUser(conversation.otherUser);
-        
+
         // Mark conversation as read
         if (currentUserId) {
           markConversationAsRead(selectedConversationId, currentUserId).catch(

@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
-import { Message, MessageInsert } from "@/types";
+import { Message } from "@/types";
 
 export async function sendMessage(
   matchId: string,
@@ -92,6 +92,6 @@ export async function getOrCreateMatch(
     console.error("Error creating match:", error);
     throw new Error(`Failed to create match: ${error.message}`);
   }
-  
+
   return newMatch.id;
 }

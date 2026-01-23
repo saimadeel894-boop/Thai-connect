@@ -8,16 +8,16 @@ export function createClient() {
       auth: {
         getUser: async () => ({ data: { user: null }, error: null }),
         signOut: async () => ({ error: null }),
-        signInWithPassword: async (credentials: any) => ({
+        signInWithPassword: async (credentials: { email: string }) => ({
           data: { user: { id: 'mock-user-id', email: credentials.email } },
           error: null
         }),
         onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => { } } } }),
       },
-      from: (table: string) => {
+      from: (_table: string) => {
         const createMockChain = () => {
-          const mockChain: any = {
-            then: (resolve: any) => resolve({ data: [], error: null, count: 0 }),
+          const mockChain: Record<string, any> = {
+            then: (resolve: (value: any) => void) => resolve({ data: [], error: null, count: 0 }),
             select: () => mockChain,
             insert: () => mockChain,
             update: () => mockChain,

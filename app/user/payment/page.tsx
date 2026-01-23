@@ -10,7 +10,6 @@ import {
   Plus,
   Crown,
   Check,
-  TrendingUp,
   Calendar,
   Download,
   FileText,
@@ -155,8 +154,8 @@ export default function PaymentPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>("subscription");
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(mockPaymentMethods);
-  const [subscription, setSubscription] = useState<Subscription>(mockSubscription);
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
+  const [subscription] = useState<Subscription>(mockSubscription);
+  const [transactions] = useState<Transaction[]>(mockTransactions);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
   const handleSetDefault = (id: string) => {
@@ -260,31 +259,28 @@ export default function PaymentPage() {
         <div className="mb-6 flex gap-2 border-b border-gray-800">
           <button
             onClick={() => setActiveTab("subscription")}
-            className={`px-4 py-2 text-sm font-medium transition ${
-              activeTab === "subscription"
+            className={`px-4 py-2 text-sm font-medium transition ${activeTab === "subscription"
                 ? "border-b-2 border-red-500 text-white"
                 : "text-gray-400 hover:text-white"
-            }`}
+              }`}
           >
             Subscription
           </button>
           <button
             onClick={() => setActiveTab("history")}
-            className={`px-4 py-2 text-sm font-medium transition ${
-              activeTab === "history"
+            className={`px-4 py-2 text-sm font-medium transition ${activeTab === "history"
                 ? "border-b-2 border-red-500 text-white"
                 : "text-gray-400 hover:text-white"
-            }`}
+              }`}
           >
             Payment History
           </button>
           <button
             onClick={() => setActiveTab("methods")}
-            className={`px-4 py-2 text-sm font-medium transition ${
-              activeTab === "methods"
+            className={`px-4 py-2 text-sm font-medium transition ${activeTab === "methods"
                 ? "border-b-2 border-red-500 text-white"
                 : "text-gray-400 hover:text-white"
-            }`}
+              }`}
           >
             Payment Methods
           </button>
@@ -303,11 +299,10 @@ export default function PaymentPage() {
                       {getPlanName(subscription.planType)}
                     </h2>
                     <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-bold ${
-                        subscription.status === "active"
+                      className={`rounded-full px-2 py-0.5 text-xs font-bold ${subscription.status === "active"
                           ? "bg-green-500 text-white"
                           : "bg-gray-700 text-gray-300"
-                      }`}
+                        }`}
                     >
                       {subscription.status.toUpperCase()}
                     </span>
@@ -356,11 +351,10 @@ export default function PaymentPage() {
                   {plans.map((plan) => (
                     <div
                       key={plan.id}
-                      className={`rounded-2xl border p-6 ${
-                        plan.popular
+                      className={`rounded-2xl border p-6 ${plan.popular
                           ? "border-red-500 bg-red-500/5"
                           : "border-gray-800 bg-gray-900"
-                      }`}
+                        }`}
                     >
                       {plan.popular && (
                         <div className="mb-2 inline-flex items-center rounded-full bg-red-500 px-2 py-1 text-xs font-bold text-white">
@@ -467,69 +461,69 @@ export default function PaymentPage() {
         )}
 
         {activeTab === "methods" && (
-        <div className="space-y-4">
-          {paymentMethods.map((method) => (
-            <div
-              key={method.id}
+          <div className="space-y-4">
+            {paymentMethods.map((method) => (
+              <div
+                key={method.id}
                 className="rounded-2xl border border-gray-800 bg-gray-900 p-4"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className={`${getCardIcon(method.type)}`}>
-                    <CreditCard className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-white">
-                        {getCardName(method.type)} •••• {method.last4}
-                      </span>
-                      {method.isDefault && (
-                        <span className="rounded bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
-                          Default
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className={`${getCardIcon(method.type)}`}>
+                      <CreditCard className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-white">
+                          {getCardName(method.type)} •••• {method.last4}
                         </span>
-                      )}
-                    </div>
-                    <div className="mt-1 text-sm text-gray-400">
-                      Expires {method.expiryMonth}/{method.expiryYear}
+                        {method.isDefault && (
+                          <span className="rounded bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
+                            Default
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-1 text-sm text-gray-400">
+                        Expires {method.expiryMonth}/{method.expiryYear}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {!method.isDefault && (
+                  <div className="flex items-center gap-2">
+                    {!method.isDefault && (
+                      <button
+                        onClick={() => handleSetDefault(method.id)}
+                        className="rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-700"
+                      >
+                        Set Default
+                      </button>
+                    )}
                     <button
-                      onClick={() => handleSetDefault(method.id)}
-                      className="rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-700"
+                      onClick={() => handleDelete(method.id)}
+                      className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-800 hover:text-red-500"
                     >
-                      Set Default
+                      <Trash2 className="h-5 w-5" />
                     </button>
-                  )}
-                  <button
-                    onClick={() => handleDelete(method.id)}
-                    className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-800 hover:text-red-500"
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
 
-          {/* Add Payment Method */}
-          <button
-            onClick={handleAddPayment}
-            className="w-full rounded-2xl border-2 border-dashed border-gray-800 bg-gray-900/50 p-6 text-center transition hover:border-gray-700 hover:bg-gray-900"
-          >
-            <div className="flex items-center justify-center gap-2 text-gray-400">
-              <Plus className="h-5 w-5" />
-              <span className="font-medium">Add Payment Method</span>
-            </div>
-          </button>
+            {/* Add Payment Method */}
+            <button
+              onClick={handleAddPayment}
+              className="w-full rounded-2xl border-2 border-dashed border-gray-800 bg-gray-900/50 p-6 text-center transition hover:border-gray-700 hover:bg-gray-900"
+            >
+              <div className="flex items-center justify-center gap-2 text-gray-400">
+                <Plus className="h-5 w-5" />
+                <span className="font-medium">Add Payment Method</span>
+              </div>
+            </button>
 
-          {/* Security Notice */}
+            {/* Security Notice */}
             <div className="rounded-2xl border border-gray-800 bg-gray-900 p-4">
-            <div className="flex items-start gap-3">
+              <div className="flex items-start gap-3">
                 <Lock className="mt-0.5 h-5 w-5 flex-shrink-0 text-gray-400" />
-              <p className="text-sm text-gray-400">
+                <p className="text-sm text-gray-400">
                   Your payment information is encrypted and secure. We never store your full
                   card details.
                 </p>
