@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Search } from "lucide-react";
 import { Profile } from "@/types";
@@ -193,9 +193,11 @@ export default function MessagesPage() {
               <div className="flex items-center gap-3 border-b border-gray-900 bg-black p-4">
                 <div className="relative h-12 w-12 overflow-hidden rounded-full">
                   {selectedUser.profile_image ? (
-                    <img
+                    <Image
                       src={selectedUser.profile_image}
                       alt={selectedUser.name}
+                      width={48}
+                      height={48}
                       className="h-full w-full object-cover"
                     />
                   ) : (
