@@ -11,39 +11,47 @@ export function createClient() {
         signInWithPassword: async (credentials: { email: string; password: string }) => ({ data: { user: { id: 'mock-user-id', email: credentials.email } }, error: null }),
       },
       from: (table: string) => {
-        const queryBuilder = {
+        const createQueryBuilder = () => ({
           select: (columns?: string) => {
-            const chainedMethods = {
-              eq: (column: string, value: any) => ({
-                ...chainedMethods,
-                single: () => ({ data: null, error: null }),
-                data: [],
-                error: null,
-              }),
-              single: () => ({ data: null, error: null }),
-              order: (column: string, options?: { ascending?: boolean }) => ({
-                ...chainedMethods,
-                limit: (count: number) => ({ data: [], error: null }),
-                data: [],
-                error: null,
-              }),
-              limit: (count: number) => ({ data: [], error: null }),
+            const self = {
+              eq: (column: string, value: any) => self, // Return self for chaining
+              neq: (column: string, value: any) => self,
+              gt: (column: string, value: any) => self,
+              gte: (column: string, value: any) => self,
+              lt: (column: string, value: any) => self,
+              lte: (column: string, value: any) => self,
+              like: (column: string, pattern: string) => self,
+              ilike: (column: string, pattern: string) => self,
+              in: (column: string, values: any[]) => self,
+              contains: (column: string, value: any) => self,
+              range: (start: number, end: number) => self,
+              order: (column: string, options?: { ascending?: boolean }) => self,
+              limit: (count: number) => self,
+              offset: (count: number) => self,
+              single: () => ({ data: null, error: null }), // Specific method that returns data
+              maybeSingle: () => ({ data: null, error: null }),
               data: [],
               error: null,
             };
-            return chainedMethods;
+            return self;
           },
           insert: (values: any) => ({ error: null }),
-          update: (values: any) => ({
-            eq: (column: string, value: any) => ({ error: null }),
-            error: null,
-          }),
-          delete: () => ({
-            eq: (column: string, value: any) => ({ error: null }),
-            error: null,
-          }),
-        };
-        return queryBuilder;
+          update: (values: any) => {
+            const self = {
+              eq: (column: string, value: any) => self,
+              error: null,
+            };
+            return self;
+          },
+          delete: () => {
+            const self = {
+              eq: (column: string, value: any) => self,
+              error: null,
+            };
+            return self;
+          },
+        });
+        return createQueryBuilder();
       },
     };
   }
