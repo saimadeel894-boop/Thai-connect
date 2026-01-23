@@ -45,13 +45,16 @@ export default function LoginPage() {
     <div className="flex min-h-screen flex-col bg-black">
       {/* Header */}
       <header className="border-b border-gray-900 px-4 py-4 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
+        <div className="mx-auto max-w-7xl items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <img
+            <Image
               src="/logo-thai.png"
               alt="ThaiConnect"
+              width={150}
+              height={96}
               className="h-24 w-auto"
+              priority
             />
           </Link>
 
