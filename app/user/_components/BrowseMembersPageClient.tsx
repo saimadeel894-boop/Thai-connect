@@ -23,8 +23,9 @@ import SettingsDropdown from "@/components/user/SettingsDropdown";
 import PremiumModal from "@/components/user/PremiumModal";
 import ChatBot from "@/components/user/ChatBot";
 import ChatBotButton from "@/components/user/ChatBotButton";
-// Notifications will be loaded from Supabase
-import { Conversation, Message, Profile } from "@/types";
+import Image from "next/image";
+import { Notification } from "@/components/user/NotificationDropdown";
+import { Profile } from "@/types";
 import { createClient } from "@/lib/supabase/client";
 import { useRealtimeConversations } from "@/lib/hooks/useRealtimeConversations";
 import { usePollingMessages } from "@/lib/hooks/usePollingMessages"; // Using polling until Realtime is enabled
@@ -61,7 +62,7 @@ export default function BrowseMembersPageClient({
   const [activeChatUser, setActiveChatUser] = useState<Profile | null>(null);
   const [activeChatMatchId, setActiveChatMatchId] = useState<string>("");
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
-  
+
   // Load messages with polling (updates every 2 seconds)
   const { messages: chatMessages } = usePollingMessages(activeChatMatchId || null);
   const [showProfileDetail, setShowProfileDetail] = useState(false);
@@ -219,7 +220,7 @@ export default function BrowseMembersPageClient({
       console.log("Creating match between", currentUserId, "and", memberId);
       const matchId = await getOrCreateMatch(currentUserId, memberId);
       console.log("Match created:", matchId);
-      
+
       if (!matchId) {
         alert("Failed to create match. Please try again.");
         return;
@@ -387,10 +388,13 @@ export default function BrowseMembersPageClient({
         <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
           {/* Logo */}
           <Link href="/" className="flex shrink-0 items-center">
-            <img
+            <Image
               src="/logo-thai.png"
               alt="ThaiConnect"
+              width={150}
+              height={96}
               className="h-24 w-auto"
+              priority
             />
           </Link>
 
@@ -494,31 +498,28 @@ export default function BrowseMembersPageClient({
           <div className="mb-6 flex gap-3">
             <button
               onClick={() => setSortBy("newest")}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                sortBy === "newest"
-                  ? "bg-red-500 text-white"
-                  : "bg-gray-900 text-gray-400 hover:text-white"
-              }`}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${sortBy === "newest"
+                ? "bg-red-500 text-white"
+                : "bg-gray-900 text-gray-400 hover:text-white"
+                }`}
             >
               Newest
             </button>
             <button
               onClick={() => setSortBy("online")}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                sortBy === "online"
-                  ? "bg-red-500 text-white"
-                  : "bg-gray-900 text-gray-400 hover:text-white"
-              }`}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${sortBy === "online"
+                ? "bg-red-500 text-white"
+                : "bg-gray-900 text-gray-400 hover:text-white"
+                }`}
             >
               Online
             </button>
             <button
               onClick={() => setSortBy("popular")}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                sortBy === "popular"
-                  ? "bg-red-500 text-white"
-                  : "bg-gray-900 text-gray-400 hover:text-white"
-              }`}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${sortBy === "popular"
+                ? "bg-red-500 text-white"
+                : "bg-gray-900 text-gray-400 hover:text-white"
+                }`}
             >
               Popular
             </button>

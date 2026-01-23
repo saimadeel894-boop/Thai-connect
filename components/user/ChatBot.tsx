@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { X, Send, Minimize2, Maximize2 } from "lucide-react";
+import { X, Send, Minimize2 } from "lucide-react";
 
 interface ChatMessage {
   id: string;
@@ -146,11 +146,10 @@ export default function ChatBot({ isOpen, onClose, onMinimize, isMinimized }: Ch
             className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                message.sender === "user"
+              className={`max-w-[80%] rounded-2xl px-4 py-3 ${message.sender === "user"
                   ? "bg-red-500 text-white"
                   : "bg-gray-900 text-white border border-gray-800"
-              }`}
+                }`}
             >
               <p className="text-sm">{message.text}</p>
             </div>
