@@ -23,7 +23,7 @@ import { useCallback } from "react";
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [dashboardStats, setDashboardStats] = useState<any>(null);
+  const [dashboardStats, setDashboardStats] = useState<Record<string, number> | null>(null);
 
   const loadDashboardData = useCallback(async () => {
     try {
@@ -47,7 +47,7 @@ export default function AdminDashboardPage() {
         .select("amount")
         .eq("status", "succeeded");
 
-      const totalRevenue = transactions?.reduce((sum: number, t: any) => sum + (t.amount || 0), 0) || 0;
+      const totalRevenue = transactions?.reduce((sum: number, t: Record<string, any>) => sum + (t.amount || 0), 0) || 0;
 
       // Calculate MRR from active subscriptions
       const { data: subscriptions } = await supabase
@@ -55,7 +55,7 @@ export default function AdminDashboardPage() {
         .select("price_per_month")
         .eq("status", "active");
 
-      const mrr = subscriptions?.reduce((sum: number, s: any) => sum + (s.price_per_month || 0), 0) || 0;
+      const mrr = subscriptions?.reduce((sum: number, s: Record<string, any>) => sum + (s.price_per_month || 0), 0) || 0;
 
       // Count messages
       const { count: totalMessages } = await supabase
