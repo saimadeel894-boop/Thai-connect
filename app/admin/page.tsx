@@ -42,12 +42,7 @@ export default function AdminDashboardPage() {
         .in("plan_type", ["premium", "premium_plus"]);
 
       // Calculate total revenue from transactions
-      const { data: transactions } = await supabase
-        .from("transactions")
-        .select("amount")
-        .eq("status", "succeeded");
-
-      const totalRevenue = transactions?.reduce((sum: number, t: Record<string, any>) => sum + (t.amount || 0), 0) || 0;
+      const totalRevenue = transactions?.reduce((sum: number, t: { amount?: number }) => sum + (t.amount || 0), 0) || 0;
 
       // Calculate MRR from active subscriptions
       const { data: subscriptions } = await supabase
@@ -55,7 +50,7 @@ export default function AdminDashboardPage() {
         .select("price_per_month")
         .eq("status", "active");
 
-      const mrr = subscriptions?.reduce((sum: number, s: Record<string, any>) => sum + (s.price_per_month || 0), 0) || 0;
+      const mrr = subscriptions?.reduce((sum: number, s: { price_per_month?: number }) => sum + (s.price_per_month || 0), 0) || 0;
 
       // Count messages
       const { count: totalMessages } = await supabase
