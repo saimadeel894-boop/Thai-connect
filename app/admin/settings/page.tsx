@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Settings as SettingsIcon } from "lucide-react";
@@ -8,11 +8,7 @@ import { Settings as SettingsIcon } from "lucide-react";
 export default function AdminSettingsPage() {
   const router = useRouter();
 
-  useEffect(() => {
-    checkAdminAccess();
-  }, []);
-
-  const checkAdminAccess = async () => {
+  const checkAdminAccess = useCallback(async () => {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -30,7 +26,11 @@ export default function AdminSettingsPage() {
     if (!profile || profile.role !== "admin") {
       router.push("/admin/login");
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    checkAdminAccess();
+  }, [checkAdminAccess]);
 
   return (
     <div className="space-y-6">

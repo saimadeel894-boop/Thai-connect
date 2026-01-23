@@ -1,22 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Search, Trash2 } from "lucide-react";
 
 export default function AdminMessagesPage() {
   const router = useRouter();
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    checkAdminAccess();
-    loadMessages();
-  }, []);
-
-  const checkAdminAccess = async () => {
+  const checkAdminAccess = useCallback(async () => {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -34,9 +29,9 @@ export default function AdminMessagesPage() {
     if (!profile || profile.role !== "admin") {
       router.push("/admin/login");
     }
-  };
+  }, [router]);
 
-  const loadMessages = async () => {
+  const loadMessages = useCallback(async () => {
     const supabase = createClient();
     const { data } = await supabase
       .from("messages")
@@ -50,7 +45,12 @@ export default function AdminMessagesPage() {
 
     setMessages(data || []);
     setLoading(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    checkAdminAccess();
+    loadMessages();
+  }, [checkAdminAccess, loadMessages]);
 
   const handleDeleteMessage = async (messageId: string) => {
     if (!confirm("Are you sure you want to delete this message?")) {
@@ -71,10 +71,10 @@ export default function AdminMessagesPage() {
     }
   };
 
-  const filteredMessages = messages.filter((msg) =>
-    msg.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    msg.sender?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    msg.receiver?.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredMessages = messages.filter((msg: any) =>
+    (msg.content as string).toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (msg.sender?.name as string).toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (msg.receiver?.name as string).toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   if (loading) {

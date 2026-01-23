@@ -1,14 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
   Search,
   Trash2,
-  Ban,
-  Check,
   X,
   Filter,
   Eye,
@@ -17,12 +15,9 @@ import {
   ShieldCheck,
   ShieldAlert,
   Clock,
-  MessageSquare,
   DollarSign,
-  Heart,
   FileText,
   RotateCcw,
-  ChevronDown,
 } from "lucide-react";
 
 interface User {
@@ -54,12 +49,7 @@ export default function AdminUsersPage() {
   const [verificationFilter, setVerificationFilter] = useState<string>("all");
   const [locationFilter, setLocationFilter] = useState<string>("all");
 
-  useEffect(() => {
-    checkAdminAccess();
-    loadUsers();
-  }, []);
-
-  const checkAdminAccess = async () => {
+  const checkAdminAccess = useCallback(async () => {
     const supabase = createClient();
     const {
       data: { user },
@@ -79,9 +69,9 @@ export default function AdminUsersPage() {
     if (!profile || profile.role !== "admin") {
       router.push("/admin/login");
     }
-  };
+  }, [router]);
 
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     const supabase = createClient();
     const { data } = await supabase
       .from("profiles")
@@ -89,16 +79,21 @@ export default function AdminUsersPage() {
       .order("created_at", { ascending: false });
 
     // Add mock status and verification (will be real DB fields later)
-    const usersWithMockData = (data || []).map((user: any, index: number) => ({
+    const usersWithMockData = (data || []).map((user: Record<string, unknown>, index: number) => ({
       ...user,
       status: index % 5 === 0 ? "suspended" : "active",
       verified: index % 3 !== 0,
       phone: `+45 ${20 + index} ${10 + index} ${20 + index} ${30 + index}`,
-    }));
+    })) as User[];
 
     setUsers(usersWithMockData);
     setLoading(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    checkAdminAccess();
+    loadUsers();
+  }, [checkAdminAccess, loadUsers]);
 
   // Mock data for user history
   const mockActivity = [
@@ -197,7 +192,7 @@ export default function AdminUsersPage() {
     }
   };
 
-  const handleResetAccess = (userId: string) => {
+  const handleResetAccess = () => {
     if (confirm("Reset brugerens adgang? Dette vil logge brugeren ud.")) {
       alert("Adgang nulstillet! Brugeren vil blive logget ud.");
     }
@@ -250,8 +245,8 @@ export default function AdminUsersPage() {
           <button
             onClick={() => setShowFilters(!showFilters)}
             className={`flex items-center gap-2 rounded-lg border px-6 py-3 font-medium transition ${showFilters
-                ? "border-red-500 bg-red-500/10 text-red-500"
-                : "border-gray-800 bg-gray-950 text-gray-400 hover:border-gray-700 hover:text-white"
+              ? "border-red-500 bg-red-500/10 text-red-500"
+              : "border-gray-800 bg-gray-950 text-gray-400 hover:border-gray-700 hover:text-white"
               }`}
           >
             <Filter className="h-5 w-5" />
@@ -360,8 +355,8 @@ export default function AdminUsersPage() {
                   <td className="p-4">
                     <span
                       className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${user.status === "active"
-                          ? "bg-green-500/10 text-green-500"
-                          : "bg-red-500/10 text-red-500"
+                        ? "bg-green-500/10 text-green-500"
+                        : "bg-red-500/10 text-red-500"
                         }`}
                     >
                       {user.status === "active" ? (
@@ -375,8 +370,8 @@ export default function AdminUsersPage() {
                   <td className="p-4">
                     <span
                       className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${user.verified
-                          ? "bg-blue-500/10 text-blue-500"
-                          : "bg-gray-800 text-gray-400"
+                        ? "bg-blue-500/10 text-blue-500"
+                        : "bg-gray-800 text-gray-400"
                         }`}
                     >
                       {user.verified ? (
@@ -450,8 +445,8 @@ export default function AdminUsersPage() {
               <button
                 onClick={() => setActiveTab("info")}
                 className={`flex-1 px-6 py-3 font-medium transition ${activeTab === "info"
-                    ? "border-b-2 border-red-500 text-white"
-                    : "text-gray-400 hover:text-white"
+                  ? "border-b-2 border-red-500 text-white"
+                  : "text-gray-400 hover:text-white"
                   }`}
               >
                 Information
@@ -459,8 +454,8 @@ export default function AdminUsersPage() {
               <button
                 onClick={() => setActiveTab("history")}
                 className={`flex-1 px-6 py-3 font-medium transition ${activeTab === "history"
-                    ? "border-b-2 border-red-500 text-white"
-                    : "text-gray-400 hover:text-white"
+                  ? "border-b-2 border-red-500 text-white"
+                  : "text-gray-400 hover:text-white"
                   }`}
               >
                 Historik
@@ -468,8 +463,8 @@ export default function AdminUsersPage() {
               <button
                 onClick={() => setActiveTab("notes")}
                 className={`flex-1 px-6 py-3 font-medium transition ${activeTab === "notes"
-                    ? "border-b-2 border-red-500 text-white"
-                    : "text-gray-400 hover:text-white"
+                  ? "border-b-2 border-red-500 text-white"
+                  : "text-gray-400 hover:text-white"
                   }`}
               >
                 Admin Noter
@@ -487,8 +482,8 @@ export default function AdminUsersPage() {
                       <div className="mb-2 text-sm text-gray-400">Konto Status</div>
                       <div
                         className={`text-lg font-bold ${selectedUser.status === "active"
-                            ? "text-green-500"
-                            : "text-red-500"
+                          ? "text-green-500"
+                          : "text-red-500"
                           }`}
                       >
                         {selectedUser.status === "active" ? "Aktiv" : "Suspenderet"}
@@ -539,8 +534,8 @@ export default function AdminUsersPage() {
                         <span className="text-gray-400">Role</span>
                         <span
                           className={`rounded-full px-2 py-1 text-xs font-medium ${selectedUser.role === "admin"
-                              ? "bg-red-500/10 text-red-500"
-                              : "bg-gray-800 text-gray-400"
+                            ? "bg-red-500/10 text-red-500"
+                            : "bg-gray-800 text-gray-400"
                             }`}
                         >
                           {selectedUser.role}
@@ -556,8 +551,8 @@ export default function AdminUsersPage() {
                       <button
                         onClick={() => handleSuspendUser(selectedUser.id)}
                         className={`flex items-center justify-center gap-2 rounded-lg border p-3 font-medium transition ${selectedUser.status === "suspended"
-                            ? "border-green-500/20 bg-green-500/10 text-green-500 hover:bg-green-500/20"
-                            : "border-red-500/20 bg-red-500/10 text-red-500 hover:bg-red-500/20"
+                          ? "border-green-500/20 bg-green-500/10 text-green-500 hover:bg-green-500/20"
+                          : "border-red-500/20 bg-red-500/10 text-red-500 hover:bg-red-500/20"
                           }`}
                       >
                         {selectedUser.status === "suspended" ? (
@@ -575,8 +570,8 @@ export default function AdminUsersPage() {
                       <button
                         onClick={() => handleVerifyUser(selectedUser.id)}
                         className={`flex items-center justify-center gap-2 rounded-lg border p-3 font-medium transition ${selectedUser.verified
-                            ? "border-gray-700 bg-gray-800 text-gray-400 hover:bg-gray-700"
-                            : "border-blue-500/20 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20"
+                          ? "border-gray-700 bg-gray-800 text-gray-400 hover:bg-gray-700"
+                          : "border-blue-500/20 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20"
                           }`}
                       >
                         {selectedUser.verified ? (
@@ -592,7 +587,7 @@ export default function AdminUsersPage() {
                         )}
                       </button>
                       <button
-                        onClick={() => handleResetAccess(selectedUser.id)}
+                        onClick={handleResetAccess}
                         className="flex items-center justify-center gap-2 rounded-lg border border-gray-700 bg-gray-800 p-3 font-medium text-gray-400 transition hover:bg-gray-700 hover:text-white"
                       >
                         <RotateCcw className="h-5 w-5" />
