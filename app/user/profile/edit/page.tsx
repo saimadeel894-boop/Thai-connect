@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Button from "@/components/shared/Button";
 import Input from "@/components/shared/Input";
-import { X, Upload, Trash2, Plus } from "lucide-react";
+import { X, Trash2 } from "lucide-react";
 import ImageUpload from "@/components/user/ImageUpload";
 import Image from "next/image";
 
@@ -33,62 +33,61 @@ export default function EditProfilePage() {
   const [profileImage, setProfileImage] = useState("");
   const [profileImagePreview, setProfileImagePreview] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
-  const [newPhotoUrl, setNewPhotoUrl] = useState("");
 
   useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+
+        if (userError || !user) {
+          router.push("/login");
+          return;
+        }
+
+        setUserId(user.id);
+
+        // Load existing profile data
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+
+        if (profileError) {
+          console.error("Failed to load profile:", profileError);
+          setError("Kunne ikke indlæse profil");
+          return;
+        }
+
+        if (profile) {
+          setName(profile.name || "");
+          setGender(profile.gender || "");
+          setAge(profile.age?.toString() || "");
+          setLocation(profile.location || "");
+          setInterestedIn(profile.interested_in_genders || []);
+          setPhone(profile.phone || "");
+          setHeight(profile.height?.toString() || "");
+          setWeight(profile.weight?.toString() || "");
+          setBio(profile.bio || "");
+          setInterests(profile.interests || []);
+          setProfileImage(profile.profile_image || "");
+          setProfileImagePreview(profile.profile_image || "");
+          setPhotos(profile.photos || []);
+        }
+      } catch (err: unknown) {
+        console.error("Error loading profile:", err);
+        setError(err instanceof Error ? err.message : "Kunne ikke indlæse profil");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadProfile();
-  }, []);
-
-  const loadProfile = async () => {
-    try {
-      const supabase = createClient();
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError || !user) {
-        router.push("/login");
-        return;
-      }
-
-      setUserId(user.id);
-
-      // Load existing profile data
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      if (profileError) {
-        console.error("Failed to load profile:", profileError);
-        setError("Kunne ikke indlæse profil");
-        return;
-      }
-
-      if (profile) {
-        setName(profile.name || "");
-        setGender(profile.gender || "");
-        setAge(profile.age?.toString() || "");
-        setLocation(profile.location || "");
-        setInterestedIn(profile.interested_in_genders || []);
-        setPhone(profile.phone || "");
-        setHeight(profile.height?.toString() || "");
-        setWeight(profile.weight?.toString() || "");
-        setBio(profile.bio || "");
-        setInterests(profile.interests || []);
-        setProfileImage(profile.profile_image || "");
-        setProfileImagePreview(profile.profile_image || "");
-        setPhotos(profile.photos || []);
-      }
-    } catch (err: unknown) {
-      console.error("Error loading profile:", err);
-      setError(err instanceof Error ? err.message : "Kunne ikke indlæse profil");
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [router]);
 
   const handleInterestedInToggle = (value: string) => {
     if (interestedIn.includes(value)) {

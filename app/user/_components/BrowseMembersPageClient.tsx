@@ -5,8 +5,6 @@ import Link from "next/link";
 import {
   Search,
   SlidersHorizontal,
-  Bell,
-  Settings,
   User,
   X,
   ShieldCheck,
@@ -52,7 +50,7 @@ interface BrowseMembersPageClientProps {
 export default function BrowseMembersPageClient({
   initialMembers = [],
 }: BrowseMembersPageClientProps) {
-  const [members, setMembers] = useState<Member[]>(Array.isArray(initialMembers) ? initialMembers : []);
+  const members = useMemo(() => Array.isArray(initialMembers) ? initialMembers : [], [initialMembers]);
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [sortBy, setSortBy] = useState<SortBy>("online");
   const [searchQuery, setSearchQuery] = useState("");
@@ -67,7 +65,7 @@ export default function BrowseMembersPageClient({
   const { messages: chatMessages } = usePollingMessages(activeChatMatchId || null);
   const [showProfileDetail, setShowProfileDetail] = useState(false);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [showChatBot, setShowChatBot] = useState(false);
   const [chatBotMinimized, setChatBotMinimized] = useState(false);
@@ -562,7 +560,6 @@ export default function BrowseMembersPageClient({
         <ChatPopup
           otherUser={activeChatUser}
           currentUserId={currentUserId}
-          matchId={activeChatMatchId}
           onClose={handleCloseChatPopup}
           onSendMessage={handleSendMessage}
           messages={chatMessages}
@@ -579,7 +576,6 @@ export default function BrowseMembersPageClient({
         }}
         onMessage={handleProfileMessage}
         onLike={handleProfileLike}
-        currentUserId={currentUserId}
         distance={
           selectedProfile && Array.isArray(members) ? members.find((m) => m.id === selectedProfile.id)?.distance : 5
         }

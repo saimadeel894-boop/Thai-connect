@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Button from "@/components/shared/Button";
@@ -139,7 +140,7 @@ export default function OnboardingPage() {
       const supabase = createClient();
 
       // Update profile with onboarding data
-      const profileData: Record<string, any> = {
+      const profileData: Record<string, unknown> = {
         name: name.trim(),
         gender,
         age: ageNum,
@@ -464,9 +465,11 @@ export default function OnboardingPage() {
                   />
                   {imagePreview && (
                     <div className="mt-3">
-                      <img
+                      <Image
                         src={imagePreview}
                         alt="Preview"
+                        width={128}
+                        height={128}
                         className="h-32 w-32 rounded-lg object-cover"
                         onError={() => setImagePreview("")}
                       />
