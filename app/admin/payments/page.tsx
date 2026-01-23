@@ -1,6 +1,7 @@
 "use client";
 // Database fix: createdAt -> created_at, refundedAt -> refunded_at
 import { useState, useMemo, useEffect } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -139,8 +140,8 @@ export default function AdminPaymentsPage() {
     const refundedAmount = transactions
       .filter((t) => t.status === "refunded")
       .reduce((sum, t) => sum + (t.refunded_amount || t.amount), 0);
-    const successRate = transactions.length > 0 
-      ? (succeededTxns.length / transactions.length) * 100 
+    const successRate = transactions.length > 0
+      ? (succeededTxns.length / transactions.length) * 100
       : 0;
 
     return {
@@ -485,9 +486,11 @@ export default function AdminPaymentsPage() {
                   <td className="py-4">
                     <div className="flex items-center gap-3">
                       {txn.user?.profile_image ? (
-                        <img
+                        <Image
                           src={txn.user.profile_image}
                           alt={txn.user?.name || "User"}
+                          width={40}
+                          height={40}
                           className="h-10 w-10 rounded-full object-cover"
                         />
                       ) : (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -173,7 +174,7 @@ export default function AdminUsersPage() {
 
     try {
       const supabase = createClient();
-      
+
       // Delete from Supabase (cascades to related data)
       const { error } = await supabase
         .from("profiles")
@@ -186,12 +187,13 @@ export default function AdminUsersPage() {
       setUsers(users.filter((u) => u.id !== userId));
       setSelectedUser(null);
       alert("Bruger slettet fra database!");
-      
+
       // Reload users to ensure sync
       loadUsers();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Delete error:", error);
-      alert("Kunne ikke slette bruger: " + error.message);
+      const message = error instanceof Error ? error.message : "Kunne ikke slette bruger";
+      alert(message);
     }
   };
 
@@ -247,11 +249,10 @@ export default function AdminUsersPage() {
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 rounded-lg border px-6 py-3 font-medium transition ${
-              showFilters
+            className={`flex items-center gap-2 rounded-lg border px-6 py-3 font-medium transition ${showFilters
                 ? "border-red-500 bg-red-500/10 text-red-500"
                 : "border-gray-800 bg-gray-950 text-gray-400 hover:border-gray-700 hover:text-white"
-            }`}
+              }`}
           >
             <Filter className="h-5 w-5" />
             Filtre
@@ -335,9 +336,11 @@ export default function AdminUsersPage() {
                   <td className="p-4">
                     <div className="flex items-center gap-3">
                       {user.profile_image ? (
-                        <img
+                        <Image
                           src={user.profile_image}
                           alt={user.name}
+                          width={40}
+                          height={40}
                           className="h-10 w-10 rounded-full object-cover"
                         />
                       ) : (
@@ -356,11 +359,10 @@ export default function AdminUsersPage() {
                   <td className="p-4 text-gray-400">{user.location}</td>
                   <td className="p-4">
                     <span
-                      className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${
-                        user.status === "active"
+                      className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${user.status === "active"
                           ? "bg-green-500/10 text-green-500"
                           : "bg-red-500/10 text-red-500"
-                      }`}
+                        }`}
                     >
                       {user.status === "active" ? (
                         <UserCheck className="h-3 w-3" />
@@ -372,11 +374,10 @@ export default function AdminUsersPage() {
                   </td>
                   <td className="p-4">
                     <span
-                      className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${
-                        user.verified
+                      className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${user.verified
                           ? "bg-blue-500/10 text-blue-500"
                           : "bg-gray-800 text-gray-400"
-                      }`}
+                        }`}
                     >
                       {user.verified ? (
                         <ShieldCheck className="h-3 w-3" />
@@ -419,9 +420,11 @@ export default function AdminUsersPage() {
             <div className="flex items-center justify-between border-b border-gray-800 p-6">
               <div className="flex items-center gap-4">
                 {selectedUser.profile_image ? (
-                  <img
+                  <Image
                     src={selectedUser.profile_image}
                     alt={selectedUser.name}
+                    width={64}
+                    height={64}
                     className="h-16 w-16 rounded-full object-cover"
                   />
                 ) : (
@@ -446,31 +449,28 @@ export default function AdminUsersPage() {
             <div className="flex border-b border-gray-800">
               <button
                 onClick={() => setActiveTab("info")}
-                className={`flex-1 px-6 py-3 font-medium transition ${
-                  activeTab === "info"
+                className={`flex-1 px-6 py-3 font-medium transition ${activeTab === "info"
                     ? "border-b-2 border-red-500 text-white"
                     : "text-gray-400 hover:text-white"
-                }`}
+                  }`}
               >
                 Information
               </button>
               <button
                 onClick={() => setActiveTab("history")}
-                className={`flex-1 px-6 py-3 font-medium transition ${
-                  activeTab === "history"
+                className={`flex-1 px-6 py-3 font-medium transition ${activeTab === "history"
                     ? "border-b-2 border-red-500 text-white"
                     : "text-gray-400 hover:text-white"
-                }`}
+                  }`}
               >
                 Historik
               </button>
               <button
                 onClick={() => setActiveTab("notes")}
-                className={`flex-1 px-6 py-3 font-medium transition ${
-                  activeTab === "notes"
+                className={`flex-1 px-6 py-3 font-medium transition ${activeTab === "notes"
                     ? "border-b-2 border-red-500 text-white"
                     : "text-gray-400 hover:text-white"
-                }`}
+                  }`}
               >
                 Admin Noter
               </button>
@@ -486,11 +486,10 @@ export default function AdminUsersPage() {
                     <div className="rounded-lg border border-gray-800 bg-black/30 p-4">
                       <div className="mb-2 text-sm text-gray-400">Konto Status</div>
                       <div
-                        className={`text-lg font-bold ${
-                          selectedUser.status === "active"
+                        className={`text-lg font-bold ${selectedUser.status === "active"
                             ? "text-green-500"
                             : "text-red-500"
-                        }`}
+                          }`}
                       >
                         {selectedUser.status === "active" ? "Aktiv" : "Suspenderet"}
                       </div>
@@ -498,9 +497,8 @@ export default function AdminUsersPage() {
                     <div className="rounded-lg border border-gray-800 bg-black/30 p-4">
                       <div className="mb-2 text-sm text-gray-400">Verifikation</div>
                       <div
-                        className={`text-lg font-bold ${
-                          selectedUser.verified ? "text-blue-500" : "text-gray-400"
-                        }`}
+                        className={`text-lg font-bold ${selectedUser.verified ? "text-blue-500" : "text-gray-400"
+                          }`}
                       >
                         {selectedUser.verified ? "Verificeret" : "Ikke Verificeret"}
                       </div>
@@ -540,11 +538,10 @@ export default function AdminUsersPage() {
                       <div className="flex justify-between rounded-lg border border-gray-800 bg-black/30 p-3">
                         <span className="text-gray-400">Role</span>
                         <span
-                          className={`rounded-full px-2 py-1 text-xs font-medium ${
-                            selectedUser.role === "admin"
+                          className={`rounded-full px-2 py-1 text-xs font-medium ${selectedUser.role === "admin"
                               ? "bg-red-500/10 text-red-500"
                               : "bg-gray-800 text-gray-400"
-                          }`}
+                            }`}
                         >
                           {selectedUser.role}
                         </span>
@@ -558,11 +555,10 @@ export default function AdminUsersPage() {
                     <div className="grid gap-3 sm:grid-cols-2">
                       <button
                         onClick={() => handleSuspendUser(selectedUser.id)}
-                        className={`flex items-center justify-center gap-2 rounded-lg border p-3 font-medium transition ${
-                          selectedUser.status === "suspended"
+                        className={`flex items-center justify-center gap-2 rounded-lg border p-3 font-medium transition ${selectedUser.status === "suspended"
                             ? "border-green-500/20 bg-green-500/10 text-green-500 hover:bg-green-500/20"
                             : "border-red-500/20 bg-red-500/10 text-red-500 hover:bg-red-500/20"
-                        }`}
+                          }`}
                       >
                         {selectedUser.status === "suspended" ? (
                           <>
@@ -578,11 +574,10 @@ export default function AdminUsersPage() {
                       </button>
                       <button
                         onClick={() => handleVerifyUser(selectedUser.id)}
-                        className={`flex items-center justify-center gap-2 rounded-lg border p-3 font-medium transition ${
-                          selectedUser.verified
+                        className={`flex items-center justify-center gap-2 rounded-lg border p-3 font-medium transition ${selectedUser.verified
                             ? "border-gray-700 bg-gray-800 text-gray-400 hover:bg-gray-700"
                             : "border-blue-500/20 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20"
-                        }`}
+                          }`}
                       >
                         {selectedUser.verified ? (
                           <>
