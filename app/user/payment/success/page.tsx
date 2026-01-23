@@ -39,7 +39,7 @@ export default function PaymentSuccessPage() {
     } catch (error) {
       console.error("Error loading user data:", error);
     } finally {
-      setLoading(false);
+      // Loading state was unused and removed
     }
   };
 
