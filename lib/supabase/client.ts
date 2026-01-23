@@ -7,55 +7,55 @@ export function createClient() {
     return {
       auth: {
         getUser: async () => ({ data: { user: null }, error: null }),
-        signOut: async () => {},
-        signInWithPassword: async (credentials: { email: string; password: string }) => ({ data: { user: { id: 'mock-user-id', email: credentials.email } }, error: null }),
+        signOut: async () => ({ error: null }),
+        signInWithPassword: async (credentials: any) => ({
+          data: { user: { id: 'mock-user-id', email: credentials.email } },
+          error: null
+        }),
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => { } } } }),
       },
       from: (table: string) => {
-        const createQueryBuilder = () => ({
-          select: (columns?: string) => {
-            const self = {
-              eq: (column: string, value: any) => self, // Return self for chaining
-              neq: (column: string, value: any) => self,
-              gt: (column: string, value: any) => self,
-              gte: (column: string, value: any) => self,
-              lt: (column: string, value: any) => self,
-              lte: (column: string, value: any) => self,
-              like: (column: string, pattern: string) => self,
-              ilike: (column: string, pattern: string) => self,
-              in: (column: string, values: any[]) => self,
-              contains: (column: string, value: any) => self,
-              range: (start: number, end: number) => self,
-              order: (column: string, options?: { ascending?: boolean }) => self,
-              limit: (count: number) => self,
-              offset: (count: number) => self,
-              single: () => ({ data: null, error: null }), // Specific method that returns data
-              maybeSingle: () => ({ data: null, error: null }),
-              data: [],
-              error: null,
-            };
-            return self;
-          },
-          insert: (values: any) => ({ error: null }),
-          update: (values: any) => {
-            const self = {
-              eq: (column: string, value: any) => self,
-              error: null,
-            };
-            return self;
-          },
-          delete: () => {
-            const self = {
-              eq: (column: string, value: any) => self,
-              error: null,
-            };
-            return self;
-          },
-        });
-        return createQueryBuilder();
+        const createMockChain = () => {
+          const mockChain: any = {
+            then: (resolve: any) => resolve({ data: [], error: null, count: 0 }),
+            select: () => mockChain,
+            insert: () => mockChain,
+            update: () => mockChain,
+            upsert: () => mockChain,
+            delete: () => mockChain,
+            eq: () => mockChain,
+            neq: () => mockChain,
+            gt: () => mockChain,
+            gte: () => mockChain,
+            lt: () => mockChain,
+            lte: () => mockChain,
+            like: () => mockChain,
+            ilike: () => mockChain,
+            in: () => mockChain,
+            contains: () => mockChain,
+            range: () => mockChain,
+            order: () => mockChain,
+            limit: () => mockChain,
+            offset: () => mockChain,
+            single: () => mockChain,
+            maybeSingle: () => mockChain,
+            csv: () => mockChain,
+          };
+          return mockChain;
+        };
+        return createMockChain();
       },
-    };
+      channel: () => ({
+        on: () => ({
+          subscribe: () => ({ unsubscribe: () => { } })
+        }),
+        subscribe: () => ({ unsubscribe: () => { } })
+      }),
+      removeChannel: async () => { },
+      removeAllChannels: async () => { },
+    } as any;
   }
-  
+
   return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!

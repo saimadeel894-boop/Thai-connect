@@ -27,7 +27,7 @@ export function useRealtimeMessages(matchId: string | null) {
           .order("created_at", { ascending: true });
 
         if (error) throw error;
-        
+
         console.log("Loaded messages:", data);
         setMessages(data || []);
       } catch (error) {
@@ -40,7 +40,7 @@ export function useRealtimeMessages(matchId: string | null) {
 
     const setupRealtimeSubscription = () => {
       console.log("Setting up realtime subscription for match:", matchId);
-      
+
       channel = supabase
         .channel(`messages:${matchId}`)
         .on(
@@ -51,7 +51,7 @@ export function useRealtimeMessages(matchId: string | null) {
             table: "messages",
             filter: `match_id=eq.${matchId}`,
           },
-          (payload) => {
+          (payload: any) => {
             console.log("New message received via realtime:", payload.new);
             setMessages((current) => {
               // Avoid duplicates
@@ -69,7 +69,7 @@ export function useRealtimeMessages(matchId: string | null) {
             table: "messages",
             filter: `match_id=eq.${matchId}`,
           },
-          (payload) => {
+          (payload: any) => {
             console.log("Message updated via realtime:", payload.new);
             setMessages((current) =>
               current.map((msg) =>
@@ -78,7 +78,7 @@ export function useRealtimeMessages(matchId: string | null) {
             );
           }
         )
-        .subscribe((status) => {
+        .subscribe((status: string) => {
           console.log("Realtime subscription status:", status);
         });
     };

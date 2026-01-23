@@ -74,7 +74,7 @@ export default function AdminDashboardPage() {
         .select("amount")
         .eq("status", "succeeded");
 
-      const totalRevenue = transactions?.reduce((sum, t) => sum + t.amount, 0) || 0;
+      const totalRevenue = transactions?.reduce((sum: number, t: any) => sum + (t.amount || 0), 0) || 0;
 
       // Calculate MRR from active subscriptions
       const { data: subscriptions } = await supabase
@@ -82,7 +82,7 @@ export default function AdminDashboardPage() {
         .select("price_per_month")
         .eq("status", "active");
 
-      const mrr = subscriptions?.reduce((sum, s) => sum + s.price_per_month, 0) || 0;
+      const mrr = subscriptions?.reduce((sum: number, s: any) => sum + (s.price_per_month || 0), 0) || 0;
 
       // Count messages
       const { count: totalMessages } = await supabase
@@ -129,7 +129,7 @@ export default function AdminDashboardPage() {
       trend: "up",
       icon: UserCheck,
       color: "bg-gray-800",
-      subtext: dashboardStats.totalUsers > 0 
+      subtext: dashboardStats.totalUsers > 0
         ? `${((dashboardStats.premiumUsers / dashboardStats.totalUsers) * 100).toFixed(1)}% conversion`
         : "0% conversion",
     },

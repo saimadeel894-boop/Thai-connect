@@ -39,7 +39,7 @@ export function useRealtimeConversations(currentUserId: string | null) {
 
         // Get profiles and last messages for each match
         const conversationsData = await Promise.all(
-          matches.map(async (match) => {
+          matches.map(async (match: any) => {
             const otherUserId =
               match.user_a === currentUserId ? match.user_b : match.user_a;
 
