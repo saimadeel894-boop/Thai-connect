@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import NextImage from "next/image";
 import { useRouter } from "next/navigation";
 import { MessageCircle, Mail } from "lucide-react";
 import { Conversation } from "@/types";
@@ -91,9 +92,11 @@ export default function ChatDropdown({
                         {/* Avatar */}
                         <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full">
                           {conversation.otherUser.profile_image ? (
-                            <img
+                            <NextImage
                               src={conversation.otherUser.profile_image}
                               alt={conversation.otherUser.name}
+                              width={48}
+                              height={48}
                               className="h-full w-full object-cover"
                             />
                           ) : (
@@ -112,9 +115,8 @@ export default function ChatDropdown({
                         <div className="min-w-0 flex-1">
                           <div className="mb-1 flex items-baseline justify-between gap-2">
                             <h4
-                              className={`truncate text-sm font-semibold ${
-                                hasUnread ? "text-white" : "text-gray-300"
-                              }`}
+                              className={`truncate text-sm font-semibold ${hasUnread ? "text-white" : "text-gray-300"
+                                }`}
                             >
                               {conversation.otherUser.name}
                             </h4>
@@ -127,11 +129,10 @@ export default function ChatDropdown({
                             )}
                           </div>
                           <p
-                            className={`truncate text-sm ${
-                              hasUnread
-                                ? "font-medium text-white"
-                                : "text-gray-400"
-                            }`}
+                            className={`truncate text-sm ${hasUnread
+                              ? "font-medium text-white"
+                              : "text-gray-400"
+                              }`}
                           >
                             {conversation.lastMessage
                               ? conversation.lastMessage.content

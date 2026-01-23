@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import NextImage from "next/image";
 import { X, Minimize2, Maximize2 } from "lucide-react";
 import { Profile, Message } from "@/types";
 import MessageList from "./MessageList";
@@ -9,7 +10,6 @@ import MessageInput from "./MessageInput";
 interface ChatPopupProps {
   otherUser: Profile;
   currentUserId: string;
-  matchId: string;
   onClose: () => void;
   onSendMessage: (content: string) => Promise<void>;
   messages: Message[];
@@ -19,7 +19,6 @@ interface ChatPopupProps {
 export default function ChatPopup({
   otherUser,
   currentUserId,
-  matchId,
   onClose,
   onSendMessage,
   messages,
@@ -41,9 +40,8 @@ export default function ChatPopup({
 
   return (
     <div
-      className={`fixed bottom-4 right-4 z-50 flex flex-col overflow-hidden rounded-lg border border-gray-800 bg-gray-950 shadow-2xl transition-all ${
-        isMinimized ? "h-16 w-80" : "h-[600px] w-96"
-      }`}
+      className={`fixed bottom-4 right-4 z-50 flex flex-col overflow-hidden rounded-lg border border-gray-800 bg-gray-950 shadow-2xl transition-all ${isMinimized ? "h-16 w-80" : "h-[600px] w-96"
+        }`}
     >
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-800 bg-gray-900 p-4">
@@ -51,9 +49,11 @@ export default function ChatPopup({
           {/* Avatar */}
           <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full">
             {otherUser.profile_image ? (
-              <img
+              <NextImage
                 src={otherUser.profile_image}
                 alt={otherUser.name}
+                width={40}
+                height={40}
                 className="h-full w-full object-cover"
               />
             ) : (
