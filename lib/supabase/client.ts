@@ -14,10 +14,10 @@ export function createClient() {
         }),
         onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => { } } } }),
       },
-      from: (_table: string) => {
+      from: () => {
         const createMockChain = () => {
-          const mockChain: Record<string, any> = {
-            then: (resolve: (value: any) => void) => resolve({ data: [], error: null, count: 0 }),
+          const mockChain: Record<string, unknown> = {
+            then: (resolve: (value: unknown) => void) => resolve({ data: [], error: null, count: 0 }),
             select: () => mockChain,
             insert: () => mockChain,
             update: () => mockChain,
@@ -53,7 +53,7 @@ export function createClient() {
       }),
       removeChannel: async () => { },
       removeAllChannels: async () => { },
-    } as any;
+    } as unknown as ReturnType<typeof createBrowserClient>;
   }
 
   return createBrowserClient(

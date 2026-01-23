@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Conversation, Match, Profile, Message } from "@/types";
+import { Conversation, Profile, Message } from "@/types";
 
 export function useRealtimeConversations(currentUserId: string | null) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -39,9 +39,10 @@ export function useRealtimeConversations(currentUserId: string | null) {
 
         // Get profiles and last messages for each match
         const conversationsData = await Promise.all(
-          matches.map(async (match: any) => {
+          matches.map(async (match: { user_a: string; user_b: string; id: string; created_at: string }) => {
+            const matchData = match;
             const otherUserId =
-              match.user_a === currentUserId ? match.user_b : match.user_a;
+              matchData.user_a === currentUserId ? matchData.user_b : matchData.user_a;
 
             // Get other user's profile
             const { data: profile } = await supabase
@@ -126,7 +127,7 @@ export function useRealtimeConversations(currentUserId: string | null) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentUserId]);
+  }, [currentUserId, supabase]);
 
   return { conversations, loading };
 }

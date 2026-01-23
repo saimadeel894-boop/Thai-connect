@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
-import { Upload, X, Loader2 } from "lucide-react";
+import { Upload, Loader2 } from "lucide-react";
 
 interface ImageUploadProps {
     onUpload: (url: string) => void;
@@ -49,9 +50,10 @@ export default function ImageUpload({
 
             setPreview(publicUrl);
             onUpload(publicUrl);
-        } catch (error: any) {
-            console.error("Error uploading image:", error.message);
-            alert("Error uploading image: " + error.message);
+        } catch (error: unknown) {
+            const err = error as Error;
+            console.error("Error uploading image:", err.message);
+            alert("Error uploading image: " + err.message);
         } finally {
             setUploading(false);
         }
@@ -66,9 +68,11 @@ export default function ImageUpload({
                 <div className="group relative">
                     <div className="h-32 w-32 overflow-hidden rounded-full border-2 border-gray-800 bg-gray-900 transition-colors group-hover:border-red-500">
                         {preview ? (
-                            <img
+                            <Image
                                 src={preview}
                                 alt="Profile"
+                                width={128}
+                                height={128}
                                 className="h-full w-full object-cover"
                             />
                         ) : (
