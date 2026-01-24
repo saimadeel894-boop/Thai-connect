@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import type Stripe from 'stripe';
+import Stripe from 'stripe';
 
 /**
  * Runtime-safe helpers:
@@ -41,7 +41,9 @@ export async function POST(req: NextRequest) {
   let event: Stripe.Event;
 
   try {
-    const { stripe } = await import('@/lib/stripe/server');
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2025-12-15.clover',
+    });
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
   } catch (err: unknown) {
     const error = err as Error;
@@ -56,6 +58,12 @@ export async function POST(req: NextRequest) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
 
+        // Check if subscription exists (some sessions might not have subscriptions)
+        if (!session.subscription) {
+          console.error('No subscription in session');
+          break;
+        }
+
         const subscriptionId = session.subscription as string;
         const customerId = session.customer as string;
         const userId = session.metadata?.user_id;
@@ -67,7 +75,9 @@ export async function POST(req: NextRequest) {
         }
 
         // Get subscription details from Stripe (runtime-safe unwrap)
-        const { stripe } = await import('@/lib/stripe/server');
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+          apiVersion: '2025-12-15.clover',
+        });
         const stripeSubscriptionRes = await stripe.subscriptions.retrieve(subscriptionId);
         const stripeSubscription = unwrapStripeSubscription(stripeSubscriptionRes);
 
@@ -95,12 +105,13 @@ export async function POST(req: NextRequest) {
             plan_type: planType,
             status: 'active',
             price_per_month: pricePerMonth,
-            currency: 'DKK',
+            currency: session.currency?.toUpperCase() || 'USD',
             stripe_subscription_id: subscriptionId,
             stripe_customer_id: customerId,
             current_period_start: periodStart ? new Date(periodStart * 1000).toISOString() : null,
             current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
-            start_date: periodStart ? new Date(periodStart * 1000).toISOString() : null,
+            start_date: periodStart ? new Date(periodStart * 1000).toISOString() : new Date().toISOString(),
+            created_at: new Date().toISOString(), // Ensure created_at is set
           });
 
         if (subError) {
@@ -111,12 +122,13 @@ export async function POST(req: NextRequest) {
         const { error: txError } = await supabase.from('transactions').insert({
           user_id: userId,
           amount: session.amount_total ? session.amount_total / 100 : 0,
-          currency: 'DKK',
+          currency: session.currency?.toUpperCase() || 'USD',
           status: 'succeeded',
           type: 'subscription',
           description: `${planType} subscription payment`,
           plan_name: planType,
           stripe_payment_intent_id: session.payment_intent as string,
+          created_at: new Date().toISOString(),
         });
 
         if (txError) {
@@ -139,6 +151,7 @@ export async function POST(req: NextRequest) {
             current_period_start: periodStart ? new Date(periodStart * 1000).toISOString() : null,
             current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
             cancel_at: subscription.cancel_at ? new Date(subscription.cancel_at * 1000).toISOString() : null,
+            ended_at: subscription.ended_at ? new Date(subscription.ended_at * 1000).toISOString() : null,
           })
           .eq('stripe_subscription_id', subscription.id);
 
@@ -170,20 +183,24 @@ export async function POST(req: NextRequest) {
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice;
 
+        // Access subscription property safely with type assertion
         const invoiceWithSubscription = invoice as Stripe.Invoice & { subscription: string };
-        const subscriptionId = invoiceWithSubscription.subscription;
+        const subscriptionId = invoiceWithSubscription.subscription || '';
+        
         if (subscriptionId) {
-          const { data: sub } = await supabase
+          const { data: sub, error: subError } = await supabase
             .from('subscriptions')
             .select('user_id, plan_type')
             .eq('stripe_subscription_id', subscriptionId)
             .single();
 
-          if (sub) {
+          if (subError) {
+            console.error('Error fetching subscription for invoice:', subError);
+          } else if (sub) {
             const { error } = await supabase.from('transactions').insert({
               user_id: sub.user_id,
               amount: invoice.amount_paid / 100,
-              currency: 'DKK',
+              currency: invoice.currency?.toUpperCase() || 'USD',
               status: 'succeeded',
               type: 'subscription',
               description: `${sub.plan_type} subscription renewal`,
@@ -191,6 +208,7 @@ export async function POST(req: NextRequest) {
               stripe_invoice_id: invoice.id,
               stripe_charge_id: (invoice as { charge?: string }).charge,
               invoice_url: invoice.hosted_invoice_url,
+              created_at: new Date().toISOString(),
             });
 
             if (error) {
@@ -205,8 +223,10 @@ export async function POST(req: NextRequest) {
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
 
+        // Access subscription property safely with type assertion
         const invoiceWithSubscription = invoice as Stripe.Invoice & { subscription: string };
-        const subscriptionId = invoiceWithSubscription.subscription;
+        const subscriptionId = invoiceWithSubscription.subscription || '';
+        
         if (subscriptionId) {
           const { error } = await supabase
             .from('subscriptions')
