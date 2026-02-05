@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Button from "@/components/shared/Button";
 import Input from "@/components/shared/Input";
-import { X, Upload, Trash2 } from "lucide-react";
+import { X, Trash2 } from "lucide-react";
+import ImageUpload from "@/components/user/ImageUpload";
+import Image from "next/image";
 
 export default function EditProfilePage() {
   const router = useRouter();
@@ -31,62 +33,61 @@ export default function EditProfilePage() {
   const [profileImage, setProfileImage] = useState("");
   const [profileImagePreview, setProfileImagePreview] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
-  const [newPhotoUrl, setNewPhotoUrl] = useState("");
 
   useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+
+        if (userError || !user) {
+          router.push("/login");
+          return;
+        }
+
+        setUserId(user.id);
+
+        // Load existing profile data
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+
+        if (profileError) {
+          console.error("Failed to load profile:", profileError);
+          setError("Kunne ikke indlæse profil");
+          return;
+        }
+
+        if (profile) {
+          setName(profile.name || "");
+          setGender(profile.gender || "");
+          setAge(profile.age?.toString() || "");
+          setLocation(profile.location || "");
+          setInterestedIn(profile.interested_in_genders || []);
+          setPhone(profile.phone || "");
+          setHeight(profile.height?.toString() || "");
+          setWeight(profile.weight?.toString() || "");
+          setBio(profile.bio || "");
+          setInterests(profile.interests || []);
+          setProfileImage(profile.profile_image || "");
+          setProfileImagePreview(profile.profile_image || "");
+          setPhotos(profile.photos || []);
+        }
+      } catch (err: unknown) {
+        console.error("Error loading profile:", err);
+        setError(err instanceof Error ? err.message : "Kunne ikke indlæse profil");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadProfile();
-  }, []);
-
-  const loadProfile = async () => {
-    try {
-      const supabase = createClient();
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError || !user) {
-        router.push("/login");
-        return;
-      }
-
-      setUserId(user.id);
-
-      // Load existing profile data
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      if (profileError) {
-        console.error("Failed to load profile:", profileError);
-        setError("Kunne ikke indlæse profil");
-        return;
-      }
-
-      if (profile) {
-        setName(profile.name || "");
-        setGender(profile.gender || "");
-        setAge(profile.age?.toString() || "");
-        setLocation(profile.location || "");
-        setInterestedIn(profile.interested_in_genders || []);
-        setPhone(profile.phone || "");
-        setHeight(profile.height?.toString() || "");
-        setWeight(profile.weight?.toString() || "");
-        setBio(profile.bio || "");
-        setInterests(profile.interests || []);
-        setProfileImage(profile.profile_image || "");
-        setProfileImagePreview(profile.profile_image || "");
-        setPhotos(profile.photos || []);
-      }
-    } catch (err: any) {
-      console.error("Error loading profile:", err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [router]);
 
   const handleInterestedInToggle = (value: string) => {
     if (interestedIn.includes(value)) {
@@ -107,16 +108,14 @@ export default function EditProfilePage() {
     setInterests(interests.filter((i) => i !== interest));
   };
 
-  const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const url = e.target.value;
+  const handleProfileImageUploaded = (url: string) => {
     setProfileImage(url);
     setProfileImagePreview(url);
   };
 
-  const handleAddPhoto = () => {
-    if (newPhotoUrl.trim() && !photos.includes(newPhotoUrl.trim())) {
-      setPhotos([...photos, newPhotoUrl.trim()]);
-      setNewPhotoUrl("");
+  const handlePhotoUploaded = (url: string) => {
+    if (url && !photos.includes(url) && photos.length < 6) {
+      setPhotos([...photos, url]);
     }
   };
 
@@ -165,7 +164,7 @@ export default function EditProfilePage() {
     try {
       const supabase = createClient();
 
-      const profileData: any = {
+      const profileData = {
         name: name.trim(),
         gender,
         age: ageNum,
@@ -194,8 +193,8 @@ export default function EditProfilePage() {
       // Success - redirect back
       router.push("/user");
       router.refresh();
-    } catch (error: any) {
-      setError(error.message || "Kunne ikke gemme profil");
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : "Kunne ikke gemme profil");
     } finally {
       setSaving(false);
     }
@@ -255,26 +254,12 @@ export default function EditProfilePage() {
                   Profilbillede
                 </h2>
 
-                {profileImagePreview && (
-                  <div className="flex justify-center">
-                    <img
-                      src={profileImagePreview}
-                      alt="Profile preview"
-                      className="h-32 w-32 rounded-full object-cover"
-                      onError={() => setProfileImagePreview("")}
-                    />
-                  </div>
-                )}
-
-                <Input
-                  type="url"
-                  label="Profilbillede URL"
-                  placeholder="https://example.com/image.jpg"
-                  value={profileImage}
-                  onChange={handleProfileImageChange}
+                <ImageUpload
+                  currentImage={profileImagePreview}
+                  onUpload={handleProfileImageUploaded}
                 />
-                <p className="text-xs text-gray-400">
-                  Indsæt et link til dit profilbillede
+                <p className="text-center text-xs text-gray-400">
+                  Upload et profilbillede fra din enhed
                 </p>
               </div>
 
@@ -289,9 +274,11 @@ export default function EditProfilePage() {
                   <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                     {photos.map((photo, index) => (
                       <div key={index} className="group relative">
-                        <img
+                        <Image
                           src={photo}
                           alt={`Photo ${index + 1}`}
+                          width={300}
+                          height={300}
                           className="aspect-square w-full rounded-lg object-cover"
                         />
                         <button
@@ -308,28 +295,10 @@ export default function EditProfilePage() {
 
                 {/* Add New Photo */}
                 {photos.length < 6 && (
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-white">
-                      Tilføj billede
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="url"
-                        value={newPhotoUrl}
-                        onChange={(e) => setNewPhotoUrl(e.target.value)}
-                        placeholder="https://example.com/image.jpg"
-                        className="flex-1 rounded-lg border border-gray-800 bg-black px-4 py-2 text-white placeholder-gray-500 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleAddPhoto}
-                        className="rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-600"
-                      >
-                        <Upload className="h-4 w-4" />
-                      </button>
-                    </div>
-                    <p className="text-xs text-gray-400">
-                      Du kan tilføje op til 6 billeder
+                  <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-800 p-6 transition hover:border-red-500/50">
+                    <ImageUpload onUpload={handlePhotoUploaded} />
+                    <p className="mt-2 text-xs text-gray-400">
+                      Du kan tilføje op til 6 billeder i alt
                     </p>
                   </div>
                 )}

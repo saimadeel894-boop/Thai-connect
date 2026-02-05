@@ -1,18 +1,16 @@
 "use client";
 // Database fix: createdAt -> created_at, refundedAt -> refunded_at
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
   DollarSign,
   TrendingUp,
-  TrendingDown,
   AlertCircle,
   RefreshCw,
   Download,
   Search,
-  Filter,
-  Calendar,
   CreditCard,
   CheckCircle,
   XCircle,
@@ -57,12 +55,7 @@ export default function AdminPaymentsPage() {
   const [dateRange, setDateRange] = useState<string>("30");
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
-  useEffect(() => {
-    checkAdminAccess();
-    loadTransactions();
-  }, []);
-
-  const checkAdminAccess = async () => {
+  const checkAdminAccess = useCallback(async () => {
     const supabase = createClient();
     const {
       data: { user },
@@ -82,9 +75,9 @@ export default function AdminPaymentsPage() {
     if (!profile || profile.role !== "admin") {
       router.push("/admin/login");
     }
-  };
+  }, [router]);
 
-  const loadTransactions = async () => {
+  const loadTransactions = useCallback(async () => {
     try {
       const supabase = createClient();
       const { data, error } = await supabase
@@ -108,7 +101,12 @@ export default function AdminPaymentsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    checkAdminAccess();
+    loadTransactions();
+  }, [checkAdminAccess, loadTransactions]);
 
   // Filter transactions
   const filteredTransactions = useMemo(() => {
@@ -139,8 +137,8 @@ export default function AdminPaymentsPage() {
     const refundedAmount = transactions
       .filter((t) => t.status === "refunded")
       .reduce((sum, t) => sum + (t.refunded_amount || t.amount), 0);
-    const successRate = transactions.length > 0 
-      ? (succeededTxns.length / transactions.length) * 100 
+    const successRate = transactions.length > 0
+      ? (succeededTxns.length / transactions.length) * 100
       : 0;
 
     return {
@@ -184,16 +182,7 @@ export default function AdminPaymentsPage() {
     );
   };
 
-  const getCardIcon = (brand: string) => {
-    const colors = {
-      visa: "text-blue-500",
-      mastercard: "text-orange-500",
-      amex: "text-green-500",
-      discover: "text-purple-500",
-      unionpay: "text-red-500",
-    };
-    return colors[brand as keyof typeof colors] || "text-gray-400";
-  };
+  // getCardIcon removed as it was unused
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString("da-DK", {
@@ -485,9 +474,11 @@ export default function AdminPaymentsPage() {
                   <td className="py-4">
                     <div className="flex items-center gap-3">
                       {txn.user?.profile_image ? (
-                        <img
+                        <Image
                           src={txn.user.profile_image}
                           alt={txn.user?.name || "User"}
+                          width={40}
+                          height={40}
                           className="h-10 w-10 rounded-full object-cover"
                         />
                       ) : (

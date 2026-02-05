@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { X, ArrowLeft, Flag, Heart, MessageCircle, MapPin, Edit } from "lucide-react";
+import { ArrowLeft, Flag, Heart, MessageCircle, MapPin, Edit } from "lucide-react";
 import { Profile } from "@/types";
 
 interface ProfileDetailProps {
@@ -11,10 +12,8 @@ interface ProfileDetailProps {
   onClose: () => void;
   onMessage?: (profileId: string) => void;
   onLike?: (profileId: string) => void;
-  currentUserId?: string;
   distance?: number;
   isOwnProfile?: boolean;
-  onSave?: (updatedProfile: Profile) => void;
 }
 
 export default function ProfileDetail({
@@ -23,10 +22,8 @@ export default function ProfileDetail({
   onClose,
   onMessage,
   onLike,
-  currentUserId,
   distance = 5,
   isOwnProfile = false,
-  onSave,
 }: ProfileDetailProps) {
   const router = useRouter();
   const [isLiked, setIsLiked] = useState(false);
@@ -57,25 +54,23 @@ export default function ProfileDetail({
 
 
   // Mock interests if not available
-  const interests = profile.interests.length > 0 
-    ? profile.interests 
+  const interests = profile.interests.length > 0
+    ? profile.interests
     : ["Travel", "Photography", "Cooking", "Yoga", "Music", "Movies"];
 
   return (
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity ${
-          isOpen ? "opacity-100" : "pointer-events-none opacity-0"
-        }`}
+        className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity ${isOpen ? "opacity-100" : "pointer-events-none opacity-0"
+          }`}
         onClick={onClose}
       />
 
       {/* Slide Panel */}
       <div
-        className={`fixed right-0 top-0 z-50 h-screen w-full overflow-y-auto bg-gray-950 shadow-2xl transition-transform duration-300 md:w-[600px] ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed right-0 top-0 z-50 h-screen w-full overflow-y-auto bg-gray-950 shadow-2xl transition-transform duration-300 md:w-[600px] ${isOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         {/* Hero Section */}
         <div className="relative h-[60vh] min-h-[500px]">
@@ -157,11 +152,10 @@ export default function ProfileDetail({
               </button>
               <button
                 onClick={handleLike}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-lg border-2 py-3.5 font-semibold transition ${
-                  isLiked
-                    ? "border-red-500 bg-red-500 text-white"
-                    : "border-white/20 bg-transparent text-white hover:border-red-500 hover:bg-red-500/10"
-                }`}
+                className={`flex flex-1 items-center justify-center gap-2 rounded-lg border-2 py-3.5 font-semibold transition ${isLiked
+                  ? "border-red-500 bg-red-500 text-white"
+                  : "border-white/20 bg-transparent text-white hover:border-red-500 hover:bg-red-500/10"
+                  }`}
               >
                 <Heart className={`h-5 w-5 ${isLiked ? "fill-white" : ""}`} />
                 Like Profile
@@ -248,9 +242,11 @@ export default function ProfileDetail({
                     key={index}
                     className="aspect-square overflow-hidden rounded-lg"
                   >
-                    <img
+                    <Image
                       src={photo}
                       alt={`${profile.name} photo ${index + 1}`}
+                      width={400}
+                      height={400}
                       className="h-full w-full object-cover transition hover:scale-105"
                     />
                   </div>

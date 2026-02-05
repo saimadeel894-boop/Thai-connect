@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Image from "next/image";
 import { Message, Profile } from "@/types";
 import { formatDistanceToNow } from "@/lib/utils/dateUtils";
 
@@ -61,8 +62,8 @@ export default function MessageList({
         const showTimestamp =
           index === 0 ||
           new Date(message.created_at).getTime() -
-            new Date(messages[index - 1].created_at).getTime() >
-            300000; // 5 minutes
+          new Date(messages[index - 1].created_at).getTime() >
+          300000; // 5 minutes
 
         return (
           <div key={message.id}>
@@ -80,17 +81,18 @@ export default function MessageList({
               className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`flex max-w-[70%] items-end gap-2 ${
-                  isCurrentUser ? "flex-row-reverse" : "flex-row"
-                }`}
+                className={`flex max-w-[70%] items-end gap-2 ${isCurrentUser ? "flex-row-reverse" : "flex-row"
+                  }`}
               >
                 {/* Avatar (only for other user) */}
                 {!isCurrentUser && otherUser && (
                   <div className="mb-1 h-8 w-8 shrink-0 overflow-hidden rounded-full">
                     {otherUser.profile_image ? (
-                      <img
+                      <Image
                         src={otherUser.profile_image}
                         alt={otherUser.name}
+                        width={32}
+                        height={32}
                         className="h-full w-full object-cover"
                       />
                     ) : (
@@ -103,16 +105,15 @@ export default function MessageList({
 
                 {/* Message content */}
                 <div
-                  className={`rounded-2xl px-4 py-2 ${
-                    isCurrentUser
+                  className={`rounded-2xl px-4 py-2 ${isCurrentUser
                       ? "bg-red-500 text-white"
                       : "bg-gray-800 text-white"
-                  }`}
+                    }`}
                 >
                   <p className="whitespace-pre-wrap break-words text-sm">
                     {message.content}
                   </p>
-                  
+
                   {/* Read status for sent messages */}
                   {isCurrentUser && (
                     <div className="mt-1 flex justify-end">

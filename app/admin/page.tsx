@@ -11,7 +11,6 @@ import {
   DollarSign,
   UserCheck,
   TrendingUp,
-  TrendingDown,
   Clock,
   CheckCircle,
   XCircle,
@@ -19,40 +18,14 @@ import {
   ArrowDownRight,
   Minus,
 } from "lucide-react";
+import { useCallback } from "react";
 
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [dashboardStats, setDashboardStats] = useState<any>(null);
+  const [dashboardStats, setDashboardStats] = useState<Record<string, number> | null>(null);
 
-  useEffect(() => {
-    checkAdminAccess();
-    loadDashboardData();
-  }, []);
-
-  const checkAdminAccess = async () => {
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      router.push("/admin/login");
-      return;
-    }
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile || profile.role !== "admin") {
-      router.push("/admin/login");
-    }
-  };
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       const supabase = createClient();
 
@@ -74,7 +47,7 @@ export default function AdminDashboardPage() {
         .select("amount")
         .eq("status", "succeeded");
 
-      const totalRevenue = transactions?.reduce((sum, t) => sum + t.amount, 0) || 0;
+      const totalRevenue = (transactions || []).reduce((sum: number, t: { amount?: number | null }) => sum + (t.amount || 0), 0);
 
       // Calculate MRR from active subscriptions
       const { data: subscriptions } = await supabase
@@ -82,7 +55,7 @@ export default function AdminDashboardPage() {
         .select("price_per_month")
         .eq("status", "active");
 
-      const mrr = subscriptions?.reduce((sum, s) => sum + s.price_per_month, 0) || 0;
+      const mrr = (subscriptions || []).reduce((sum: number, s: { price_per_month?: number | null }) => sum + (s.price_per_month || 0), 0);
 
       // Count messages
       const { count: totalMessages } = await supabase
@@ -110,7 +83,34 @@ export default function AdminDashboardPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  const checkAdminAccess = useCallback(async () => {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      router.push("/admin/login");
+      return;
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile || profile.role !== "admin") {
+      router.push("/admin/login");
+    }
+  }, [router]);
+
+  useEffect(() => {
+    checkAdminAccess();
+    loadDashboardData();
+  }, [checkAdminAccess, loadDashboardData]);
 
   // Live stats from database
   const stats = dashboardStats ? [
@@ -129,7 +129,7 @@ export default function AdminDashboardPage() {
       trend: "up",
       icon: UserCheck,
       color: "bg-gray-800",
-      subtext: dashboardStats.totalUsers > 0 
+      subtext: dashboardStats.totalUsers > 0
         ? `${((dashboardStats.premiumUsers / dashboardStats.totalUsers) * 100).toFixed(1)}% conversion`
         : "0% conversion",
     },

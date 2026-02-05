@@ -27,7 +27,7 @@ export function useRealtimeMessages(matchId: string | null) {
           .order("created_at", { ascending: true });
 
         if (error) throw error;
-        
+
         console.log("Loaded messages:", data);
         setMessages(data || []);
       } catch (error) {
@@ -40,7 +40,7 @@ export function useRealtimeMessages(matchId: string | null) {
 
     const setupRealtimeSubscription = () => {
       console.log("Setting up realtime subscription for match:", matchId);
-      
+
       channel = supabase
         .channel(`messages:${matchId}`)
         .on(
@@ -51,13 +51,14 @@ export function useRealtimeMessages(matchId: string | null) {
             table: "messages",
             filter: `match_id=eq.${matchId}`,
           },
-          (payload) => {
-            console.log("New message received via realtime:", payload.new);
+          (payload: { new: Record<string, unknown> }) => {
+            const newMsg = payload.new as unknown as Message;
+            console.log("New message received via realtime:", newMsg);
             setMessages((current) => {
               // Avoid duplicates
-              const exists = current.some(msg => msg.id === payload.new.id);
+              const exists = current.some(msg => msg.id === newMsg.id);
               if (exists) return current;
-              return [...current, payload.new as Message];
+              return [...current, newMsg];
             });
           }
         )
@@ -69,16 +70,17 @@ export function useRealtimeMessages(matchId: string | null) {
             table: "messages",
             filter: `match_id=eq.${matchId}`,
           },
-          (payload) => {
-            console.log("Message updated via realtime:", payload.new);
+          (payload: { new: Record<string, unknown> }) => {
+            const updatedMsg = payload.new as unknown as Message;
+            console.log("Message updated via realtime:", updatedMsg);
             setMessages((current) =>
               current.map((msg) =>
-                msg.id === payload.new.id ? (payload.new as Message) : msg
+                msg.id === updatedMsg.id ? updatedMsg : msg
               )
             );
           }
         )
-        .subscribe((status) => {
+        .subscribe((status: string) => {
           console.log("Realtime subscription status:", status);
         });
     };

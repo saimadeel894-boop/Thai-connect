@@ -4,6 +4,7 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -25,7 +26,7 @@ export default function AdminLoginPage() {
       }
 
       const supabase = createClient();
-      
+
       // Sign in with email and password
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
@@ -87,8 +88,9 @@ export default function AdminLoginPage() {
       // Success - redirect to admin dashboard
       router.push("/admin");
       router.refresh();
-    } catch (error: any) {
-      setError(error.message || "Failed to sign in as admin");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to sign in as admin";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -101,10 +103,13 @@ export default function AdminLoginPage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <img 
-              src="/logo-thai.png" 
-              alt="ThaiConnect" 
+            <Image
+              src="/logo-thai.png"
+              alt="ThaiConnect"
+              width={150}
+              height={96}
               className="h-24 w-auto"
+              priority
             />
           </Link>
 

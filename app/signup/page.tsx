@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -36,7 +37,7 @@ export default function SignUpPage() {
 
     try {
       const supabase = createClient();
-      
+
       // Sign up user
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
@@ -90,8 +91,9 @@ export default function SignUpPage() {
       // Success - redirect to onboarding page
       router.push("/user/onboarding");
       router.refresh();
-    } catch (error: any) {
-      setError(error.message || "Failed to sign up");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to sign up";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -104,10 +106,13 @@ export default function SignUpPage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <img 
-              src="/logo-thai.png" 
-              alt="ThaiConnect" 
+            <Image
+              src="/logo-thai.png"
+              alt="ThaiConnect"
+              width={150}
+              height={96}
               className="h-24 w-auto"
+              priority
             />
           </Link>
 

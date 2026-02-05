@@ -7,12 +7,11 @@ import { createClient } from "@/lib/supabase/client";
 
 export default function PaymentSuccessPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("");
 
   useEffect(() => {
     loadUserData();
-    
+
     // Redirect to main page after 5 seconds
     const timeout = setTimeout(() => {
       router.push("/user");
@@ -25,14 +24,14 @@ export default function PaymentSuccessPage() {
     try {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (user) {
         const { data: profile } = await supabase
           .from("profiles")
           .select("name")
           .eq("id", user.id)
           .single();
-        
+
         if (profile) {
           setUserName(profile.name);
         }
@@ -40,7 +39,7 @@ export default function PaymentSuccessPage() {
     } catch (error) {
       console.error("Error loading user data:", error);
     } finally {
-      setLoading(false);
+      // Loading state was unused and removed
     }
   };
 

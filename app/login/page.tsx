@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -22,7 +23,7 @@ export default function LoginPage() {
 
     try {
       const supabase = createClient();
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -32,8 +33,9 @@ export default function LoginPage() {
       // Success - redirect to user page
       router.push("/user");
       router.refresh();
-    } catch (error: any) {
-      setError(error.message || "Failed to sign in");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to sign in";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -43,13 +45,16 @@ export default function LoginPage() {
     <div className="flex min-h-screen flex-col bg-black">
       {/* Header */}
       <header className="border-b border-gray-900 px-4 py-4 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
+        <div className="mx-auto max-w-7xl items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <img 
-              src="/logo-thai.png" 
-              alt="ThaiConnect" 
+            <Image
+              src="/logo-thai.png"
+              alt="ThaiConnect"
+              width={150}
+              height={96}
               className="h-24 w-auto"
+              priority
             />
           </Link>
 

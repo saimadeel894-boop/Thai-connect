@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Search } from "lucide-react";
-import { Conversation, Message, Profile } from "@/types";
+import { Profile } from "@/types";
 import ConversationList from "@/components/user/ConversationList";
 import MessageList from "@/components/user/MessageList";
 import MessageInput from "@/components/user/MessageInput";
@@ -15,7 +15,6 @@ import { useRealtimeMessages } from "@/lib/hooks/useRealtimeMessages";
 import { sendMessage as sendMessageService, markConversationAsRead } from "@/lib/services/messageService";
 
 export default function MessagesPage() {
-  const router = useRouter();
   const [selectedConversationId, setSelectedConversationId] = useState<
     string | null
   >(null);
@@ -42,7 +41,7 @@ export default function MessagesPage() {
   const { conversations, loading } = useRealtimeConversations(currentUserId);
 
   // Load messages for selected conversation with realtime
-  const { messages, loading: messagesLoading, setMessages } = useRealtimeMessages(
+  const { messages, loading: messagesLoading } = useRealtimeMessages(
     selectedConversationId
   );
 
@@ -54,7 +53,7 @@ export default function MessagesPage() {
       );
       if (conversation) {
         setSelectedUser(conversation.otherUser);
-        
+
         // Mark conversation as read
         if (currentUserId) {
           markConversationAsRead(selectedConversationId, currentUserId).catch(
@@ -194,9 +193,11 @@ export default function MessagesPage() {
               <div className="flex items-center gap-3 border-b border-gray-900 bg-black p-4">
                 <div className="relative h-12 w-12 overflow-hidden rounded-full">
                   {selectedUser.profile_image ? (
-                    <img
+                    <Image
                       src={selectedUser.profile_image}
                       alt={selectedUser.name}
+                      width={48}
+                      height={48}
                       className="h-full w-full object-cover"
                     />
                   ) : (

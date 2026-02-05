@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { updateSession } from "@/lib/supabase/middleware";
+import { updateSession } from "./lib/supabase/middleware";
 
 export async function middleware(request: NextRequest) {
   // Only apply Supabase middleware to auth routes
@@ -9,9 +9,14 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Only apply middleware to login, signup, and admin pages
-    '/login',
-    '/signup',
-    '/admin/:path*',
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - all images (svg, png, jpg, jpeg, gif, webp)
+     * Feel free to modify this pattern to include more paths.
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

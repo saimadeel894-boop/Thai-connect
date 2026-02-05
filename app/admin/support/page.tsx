@@ -1,22 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
   Search,
   Filter,
-  Headphones,
   Clock,
-  CheckCircle,
   AlertCircle,
   Bot,
   User,
   Send,
   X,
-  TrendingUp,
   MessageSquare,
-  Users,
   Zap,
   ArrowUpRight,
   ArrowDownRight,
@@ -51,12 +47,7 @@ export default function AdminSupportPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [assignedFilter, setAssignedFilter] = useState<string>("all");
 
-  useEffect(() => {
-    checkAdminAccess();
-    setTimeout(() => setLoading(false), 800);
-  }, []);
-
-  const checkAdminAccess = async () => {
+  const checkAdminAccess = useCallback(async () => {
     const supabase = createClient();
     const {
       data: { user },
@@ -76,7 +67,12 @@ export default function AdminSupportPage() {
     if (!profile || profile.role !== "admin") {
       router.push("/admin/login");
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    checkAdminAccess();
+    setTimeout(() => setLoading(false), 800);
+  }, [checkAdminAccess]);
 
   // Mock support tickets - will be replaced with real data later
   const mockTickets: SupportTicket[] = [
@@ -276,9 +272,8 @@ export default function AdminSupportPage() {
                 <p className="text-sm font-medium text-gray-400">{stat.name}</p>
                 <p className="mt-2 text-3xl font-bold text-white">{stat.value}</p>
                 <div
-                  className={`mt-2 flex items-center gap-1 text-sm ${
-                    stat.trend === "up" ? "text-green-500" : "text-red-500"
-                  }`}
+                  className={`mt-2 flex items-center gap-1 text-sm ${stat.trend === "up" ? "text-green-500" : "text-red-500"
+                    }`}
                 >
                   {stat.trend === "up" ? (
                     <ArrowUpRight className="h-4 w-4" />
@@ -311,11 +306,10 @@ export default function AdminSupportPage() {
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 rounded-lg border px-6 py-3 font-medium transition ${
-              showFilters
+            className={`flex items-center gap-2 rounded-lg border px-6 py-3 font-medium transition ${showFilters
                 ? "border-red-500 bg-red-500/10 text-red-500"
                 : "border-gray-800 bg-gray-950 text-gray-400 hover:border-gray-700 hover:text-white"
-            }`}
+              }`}
           >
             <Filter className="h-5 w-5" />
             Filtre
@@ -402,9 +396,8 @@ export default function AdminSupportPage() {
               {filteredTickets.map((ticket) => (
                 <tr
                   key={ticket.id}
-                  className={`border-b border-gray-800/50 transition hover:bg-gray-900/50 ${
-                    ticket.escalated ? "bg-red-500/5" : ""
-                  }`}
+                  className={`border-b border-gray-800/50 transition hover:bg-gray-900/50 ${ticket.escalated ? "bg-red-500/5" : ""
+                    }`}
                 >
                   <td className="p-4">
                     <div>
@@ -528,11 +521,10 @@ export default function AdminSupportPage() {
                   className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[70%] rounded-lg p-4 ${
-                      msg.sender === "user"
+                    className={`max-w-[70%] rounded-lg p-4 ${msg.sender === "user"
                         ? "bg-red-500 text-white"
                         : "border border-gray-800 bg-gray-900 text-white"
-                    }`}
+                      }`}
                   >
                     {msg.sender === "ai" && (
                       <div className="mb-2 flex items-center gap-2 text-xs text-blue-400">

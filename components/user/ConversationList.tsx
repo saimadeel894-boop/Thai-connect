@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Conversation } from "@/types";
 import { formatMessageTime } from "@/lib/utils/dateUtils";
 import { MessageCircle, MoreVertical, Ban, Flag } from "lucide-react";
@@ -65,9 +66,8 @@ export default function ConversationList({
         return (
           <div
             key={conversation.match.id}
-            className={`relative w-full p-4 transition hover:bg-gray-900 ${
-              isSelected ? "bg-red-500" : ""
-            }`}
+            className={`relative w-full p-4 transition hover:bg-gray-900 ${isSelected ? "bg-red-500" : ""
+              }`}
           >
             <div className="flex items-start gap-3">
               {/* Avatar */}
@@ -76,9 +76,11 @@ export default function ConversationList({
                 className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full"
               >
                 {conversation.otherUser.profile_image ? (
-                  <img
+                  <Image
                     src={conversation.otherUser.profile_image}
                     alt={conversation.otherUser.name}
+                    width={56}
+                    height={56}
                     className="h-full w-full object-cover"
                   />
                 ) : (
@@ -99,9 +101,8 @@ export default function ConversationList({
               >
                 <div className="mb-1 flex items-baseline justify-between gap-2">
                   <h3
-                    className={`truncate font-semibold ${
-                      hasUnread ? "text-white" : "text-gray-300"
-                    }`}
+                    className={`truncate font-semibold ${hasUnread ? "text-white" : "text-gray-300"
+                      }`}
                   >
                     {conversation.otherUser.name}, {conversation.otherUser.age}
                   </h3>
@@ -116,9 +117,8 @@ export default function ConversationList({
 
                 <div className="flex items-center justify-between gap-2">
                   <p
-                    className={`truncate text-sm ${
-                      hasUnread ? "font-medium text-white" : "text-gray-400"
-                    }`}
+                    className={`truncate text-sm ${hasUnread ? "font-medium text-white" : "text-gray-400"
+                      }`}
                   >
                     {conversation.lastMessage
                       ? conversation.lastMessage.content
@@ -156,7 +156,7 @@ export default function ConversationList({
                       className="fixed inset-0 z-10"
                       onClick={() => setOpenDropdownId(null)}
                     />
-                    
+
                     {/* Dropdown */}
                     <div className="absolute right-0 top-10 z-20 w-48 overflow-hidden rounded-lg border border-gray-800 bg-black shadow-2xl">
                       <button

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Bell, Heart, MessageCircle, Users, X } from "lucide-react";
+import { Bell, Heart, MessageCircle, Users } from "lucide-react";
 import { formatDistanceToNow } from "@/lib/utils/dateUtils";
 
 export interface Notification {
@@ -121,9 +121,8 @@ export default function NotificationDropdown({
                         onMarkAsRead(notification.id);
                       }
                     }}
-                    className={`w-full p-4 text-left transition hover:bg-gray-900 ${
-                      !notification.read ? "bg-gray-900/30" : ""
-                    }`}
+                    className={`w-full p-4 text-left transition hover:bg-gray-900 ${!notification.read ? "bg-gray-900/30" : ""
+                      }`}
                   >
                     <div className="flex items-start gap-3">
                       {/* Icon */}
@@ -134,11 +133,10 @@ export default function NotificationDropdown({
                       {/* Content */}
                       <div className="min-w-0 flex-1">
                         <p
-                          className={`text-sm ${
-                            !notification.read
+                          className={`text-sm ${!notification.read
                               ? "font-medium text-white"
                               : "text-gray-300"
-                          }`}
+                            }`}
                         >
                           {notification.content}
                         </p>

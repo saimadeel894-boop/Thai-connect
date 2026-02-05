@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe } from '@/lib/stripe/server';
 import { createClient } from '@/lib/supabase/server';
 import Stripe from 'stripe';
 
@@ -9,16 +8,14 @@ import Stripe from 'stripe';
  * So we read fields defensively.
  */
 function getSubscriptionPeriodStart(sub: Stripe.Subscription): number | null {
-  const anySub = sub as any;
-  return typeof anySub.current_period_start === 'number' ? anySub.current_period_start : null;
+  return typeof (sub as { current_period_start?: number }).current_period_start === 'number' ? (sub as { current_period_start?: number }).current_period_start! : null;
 }
 
 function getSubscriptionPeriodEnd(sub: Stripe.Subscription): number | null {
-  const anySub = sub as any;
-  return typeof anySub.current_period_end === 'number' ? anySub.current_period_end : null;
+  return typeof (sub as { current_period_end?: number }).current_period_end === 'number' ? (sub as { current_period_end?: number }).current_period_end! : null;
 }
 
-function unwrapStripeSubscription(maybeWrapped: any): Stripe.Subscription {
+function unwrapStripeSubscription(maybeWrapped: unknown): Stripe.Subscription {
   // Some wrappers return { data: Subscription } or Response<Subscription>
   if (maybeWrapped && typeof maybeWrapped === 'object' && 'data' in maybeWrapped) {
     return maybeWrapped.data as Stripe.Subscription;
@@ -44,10 +41,14 @@ export async function POST(req: NextRequest) {
   let event: Stripe.Event;
 
   try {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2025-12-15.clover',
+    });
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-  } catch (err: any) {
-    console.error('Webhook signature verification failed:', err.message);
-    return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
+  } catch (err: unknown) {
+    const error = err as Error;
+    console.error('Webhook signature verification failed:', error.message);
+    return NextResponse.json({ error: `Webhook Error: ${error.message}` }, { status: 400 });
   }
 
   const supabase = await createClient();
@@ -56,6 +57,12 @@ export async function POST(req: NextRequest) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
+
+        // Check if subscription exists (some sessions might not have subscriptions)
+        if (!session.subscription) {
+          console.error('No subscription in session');
+          break;
+        }
 
         const subscriptionId = session.subscription as string;
         const customerId = session.customer as string;
@@ -68,6 +75,9 @@ export async function POST(req: NextRequest) {
         }
 
         // Get subscription details from Stripe (runtime-safe unwrap)
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+          apiVersion: '2025-12-15.clover',
+        });
         const stripeSubscriptionRes = await stripe.subscriptions.retrieve(subscriptionId);
         const stripeSubscription = unwrapStripeSubscription(stripeSubscriptionRes);
 
@@ -95,12 +105,13 @@ export async function POST(req: NextRequest) {
             plan_type: planType,
             status: 'active',
             price_per_month: pricePerMonth,
-            currency: 'DKK',
+            currency: session.currency?.toUpperCase() || 'USD',
             stripe_subscription_id: subscriptionId,
             stripe_customer_id: customerId,
             current_period_start: periodStart ? new Date(periodStart * 1000).toISOString() : null,
             current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
-            start_date: periodStart ? new Date(periodStart * 1000).toISOString() : null,
+            start_date: periodStart ? new Date(periodStart * 1000).toISOString() : new Date().toISOString(),
+            created_at: new Date().toISOString(), // Ensure created_at is set
           });
 
         if (subError) {
@@ -111,12 +122,13 @@ export async function POST(req: NextRequest) {
         const { error: txError } = await supabase.from('transactions').insert({
           user_id: userId,
           amount: session.amount_total ? session.amount_total / 100 : 0,
-          currency: 'DKK',
+          currency: session.currency?.toUpperCase() || 'USD',
           status: 'succeeded',
           type: 'subscription',
           description: `${planType} subscription payment`,
           plan_name: planType,
           stripe_payment_intent_id: session.payment_intent as string,
+          created_at: new Date().toISOString(),
         });
 
         if (txError) {
@@ -135,10 +147,11 @@ export async function POST(req: NextRequest) {
         const { error } = await supabase
           .from('subscriptions')
           .update({
-            status: subscription.status as any,
+            status: subscription.status,
             current_period_start: periodStart ? new Date(periodStart * 1000).toISOString() : null,
             current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
             cancel_at: subscription.cancel_at ? new Date(subscription.cancel_at * 1000).toISOString() : null,
+            ended_at: subscription.ended_at ? new Date(subscription.ended_at * 1000).toISOString() : null,
           })
           .eq('stripe_subscription_id', subscription.id);
 
@@ -170,27 +183,32 @@ export async function POST(req: NextRequest) {
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice;
 
+        // Access subscription property safely with type assertion
         const invoiceWithSubscription = invoice as Stripe.Invoice & { subscription: string };
-        const subscriptionId = invoiceWithSubscription.subscription;
+        const subscriptionId = invoiceWithSubscription.subscription || '';
+        
         if (subscriptionId) {
-          const { data: sub } = await supabase
+          const { data: sub, error: subError } = await supabase
             .from('subscriptions')
             .select('user_id, plan_type')
             .eq('stripe_subscription_id', subscriptionId)
             .single();
 
-          if (sub) {
+          if (subError) {
+            console.error('Error fetching subscription for invoice:', subError);
+          } else if (sub) {
             const { error } = await supabase.from('transactions').insert({
               user_id: sub.user_id,
               amount: invoice.amount_paid / 100,
-              currency: 'DKK',
+              currency: invoice.currency?.toUpperCase() || 'USD',
               status: 'succeeded',
               type: 'subscription',
               description: `${sub.plan_type} subscription renewal`,
               plan_name: sub.plan_type,
               stripe_invoice_id: invoice.id,
-              stripe_charge_id: (invoice as any).charge as string | undefined,
+              stripe_charge_id: (invoice as { charge?: string }).charge,
               invoice_url: invoice.hosted_invoice_url,
+              created_at: new Date().toISOString(),
             });
 
             if (error) {
@@ -205,8 +223,10 @@ export async function POST(req: NextRequest) {
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
 
+        // Access subscription property safely with type assertion
         const invoiceWithSubscription = invoice as Stripe.Invoice & { subscription: string };
-        const subscriptionId = invoiceWithSubscription.subscription;
+        const subscriptionId = invoiceWithSubscription.subscription || '';
+        
         if (subscriptionId) {
           const { error } = await supabase
             .from('subscriptions')
@@ -226,10 +246,11 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ received: true });
-  } catch (error: any) {
-    console.error('Error processing webhook:', error);
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error('Error processing webhook:', err);
     return NextResponse.json(
-      { error: error.message || 'Webhook processing failed' },
+      { error: err.message || 'Webhook processing failed' },
       { status: 500 }
     );
   }
